@@ -8,6 +8,8 @@ class SplitData:
     start = 0
     lastTime = 0
 
+    # foo
+    # bar
     def __init__(self, startYear, endYear, readCurrentAnalyticsDfs=False):
         self.startingYear = startYear
         self.endingYear = endYear  # one greater than latest year of data
