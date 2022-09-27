@@ -2,15 +2,15 @@ import pandas as pd
 import numpy as np
 import time
 
-class SplitData:
 
+class SplitData:
     count = 0
     start = 0
     lastTime = 0
 
     def __init__(self, startYear, endYear, readCurrentAnalyticsDfs=False):
         self.startingYear = startYear
-        self.endingYear = endYear # one greater than latest year of data
+        self.endingYear = endYear  # one greater than latest year of data
         self.dfs = dict()
         if readCurrentAnalyticsDfs:
             for year in range(startYear, endYear):
@@ -19,7 +19,7 @@ class SplitData:
     def loadMergedData(self):
         for year in range(self.startingYear, self.endingYear):
             print("loading data for", year)
-            self.dfs[year] = pd.read_csv('merged_pbp_with_shots_' + str(year) + '-' + str(year+1) + ".csv")
+            self.dfs[year] = pd.read_csv('merged_pbp_with_shots_' + str(year) + '-' + str(year + 1) + ".csv")
 
     def splitData(self):
         for year in range(self.startingYear, self.endingYear):
@@ -30,9 +30,9 @@ class SplitData:
             df = pd.read_csv("EH_pbp_query_" + str(year) + str(year + 1) + ".csv")
             lastIndex = len(df[df.columns[0]])
             while initialIndex < lastIndex:
-                df_1 = df.iloc[initialIndex:(cutoffIndex+1)]
-                print("EH_pbp_" + str(year) + "-" + str(year+1) + "_Part_" + str(cumulativeCounter))
-                df_1.to_csv("EH_pbp_" + str(year) + "-" + str(year+1) + "_Part_" + str(cumulativeCounter) + ".csv")
+                df_1 = df.iloc[initialIndex:(cutoffIndex + 1)]
+                print("EH_pbp_" + str(year) + "-" + str(year + 1) + "_Part_" + str(cumulativeCounter))
+                df_1.to_csv("EH_pbp_" + str(year) + "-" + str(year + 1) + "_Part_" + str(cumulativeCounter) + ".csv")
                 initialIndex = cutoffIndex + 1
                 cutoffIndex = initialIndex + recordsPerFile - 1
                 cumulativeCounter += 1
@@ -41,11 +41,12 @@ class SplitData:
         self.dfs = dict()
         for year in range(self.startingYear, self.endingYear):
             print("importing for", str(year))
-            self.dfs[year] = pd.read_csv("EH_pbp_" + str(year) + "-" + str(year+1) + "_Part_1.csv")
+            self.dfs[year] = pd.read_csv("EH_pbp_" + str(year) + "-" + str(year + 1) + "_Part_1.csv")
             for part in range(1, 100):
                 print(str(year), str(part), "in progress")
                 try:
-                    self.dfs[year] = pd.concat([self.dfs[year], pd.read_csv("EH_pbp_" + str(year) + "-" + str(year+1) + "_Part_" + str(part) + ".csv")])
+                    self.dfs[year] = pd.concat([self.dfs[year], pd.read_csv(
+                        "EH_pbp_" + str(year) + "-" + str(year + 1) + "_Part_" + str(part) + ".csv")])
                 except:
                     break
 
@@ -59,7 +60,7 @@ class SplitData:
         movingIndex = index
         while (movingIndex > 0 and movingIndex < len(self.dfs[currentYear].index)):
             if self.dfs[currentYear].at[movingIndex, 'event_type'] == 'FAC':
-               return self.dfs[currentYear].at[movingIndex, 'game_seconds']
+                return self.dfs[currentYear].at[movingIndex, 'game_seconds']
             movingIndex -= 1
         return np.NaN
 
@@ -69,7 +70,8 @@ class SplitData:
             return np.NaN
         movingIndex = index
         zoneChangeCount = 0
-        while (movingIndex >= 0 and movingIndex < len(self.dfs[currentYear].index) and self.dfs[currentYear].at[movingIndex, 'time_since_faceoff'] > 0):
+        while (movingIndex >= 0 and movingIndex < len(self.dfs[currentYear].index) and self.dfs[currentYear].at[
+            movingIndex, 'time_since_faceoff'] > 0):
             zoneChanges = self.dfs[currentYear].at[movingIndex, 'zone_changes_since_last_event']
             if (zoneChanges > 0):
                 zoneChangeCount += zoneChanges
@@ -86,12 +88,15 @@ class SplitData:
             return 0
         movingIndex = index
         cumulativeExpectedGoals = 0
-        while (movingIndex >= 0 and movingIndex < len(self.dfs[currentYear].index) and self.dfs[currentYear].at[movingIndex, 'time_since_faceoff'] > 0):
+        while (movingIndex >= 0 and movingIndex < len(self.dfs[currentYear].index) and self.dfs[currentYear].at[
+            movingIndex, 'time_since_faceoff'] > 0):
             currentCumulativeXGoals = self.dfs[currentYear].at[movingIndex, 'xG_since_faceoff']
             if self.dfs[currentYear].at[movingIndex, 'zone_changes_since_last_event'] == 0:
                 xGoals = self.dfs[currentYear].at[movingIndex, 'xGoal']
-                if (self.dfs[currentYear].at[movingIndex,'event_type'] == 'GOAL' or self.dfs[currentYear].at[movingIndex,'event_type'] == 'MISS' or self.dfs[currentYear].at[movingIndex,'event_type'] == 'SHOT'):
-                    if(xGoals > 0):
+                if (self.dfs[currentYear].at[movingIndex, 'event_type'] == 'GOAL' or self.dfs[currentYear].at[
+                    movingIndex, 'event_type'] == 'MISS' or self.dfs[currentYear].at[
+                    movingIndex, 'event_type'] == 'SHOT'):
+                    if (xGoals > 0):
                         cumulativeExpectedGoals += xGoals
                 movingIndex -= 1
             else:
@@ -111,12 +116,14 @@ class SplitData:
             return 0
         movingIndex = index
         cumulativeExpectedGoals = 0
-        while (movingIndex >= 0 and movingIndex < len(self.dfs[currentYear].index) and self.dfs[currentYear].at[movingIndex, 'time_since_faceoff'] > 0):
+        while (movingIndex >= 0 and movingIndex < len(self.dfs[currentYear].index) and self.dfs[currentYear].at[
+            movingIndex, 'time_since_faceoff'] > 0):
             currentCumulativeXGoals = self.dfs[currentYear].at[movingIndex, 'faceoff_winning_team_xG_since_faceoff']
             xGoals = self.dfs[currentYear].at[movingIndex, 'xGoal']
-            if (self.dfs[currentYear].at[movingIndex,'event_type'] == 'GOAL' or self.dfs[currentYear].at[movingIndex,'event_type'] == 'MISS' or self.dfs[currentYear].at[movingIndex,'event_type'] == 'SHOT'):
-                if self.dfs[currentYear].at[movingIndex,'last_faceoff_winner_on_offense'] == True:
-                    if(xGoals > 0):
+            if (self.dfs[currentYear].at[movingIndex, 'event_type'] == 'GOAL' or self.dfs[currentYear].at[
+                movingIndex, 'event_type'] == 'MISS' or self.dfs[currentYear].at[movingIndex, 'event_type'] == 'SHOT'):
+                if self.dfs[currentYear].at[movingIndex, 'last_faceoff_winner_on_offense'] == True:
+                    if (xGoals > 0):
                         cumulativeExpectedGoals += xGoals
             movingIndex -= 1
         return cumulativeExpectedGoals
@@ -131,12 +138,14 @@ class SplitData:
             return 0
         movingIndex = index
         cumulativeExpectedGoals = 0
-        while (movingIndex >= 0 and movingIndex < len(self.dfs[currentYear].index) and self.dfs[currentYear].at[movingIndex, 'time_since_faceoff'] > 0):
+        while (movingIndex >= 0 and movingIndex < len(self.dfs[currentYear].index) and self.dfs[currentYear].at[
+            movingIndex, 'time_since_faceoff'] > 0):
             currentCumulativeXGoals = self.dfs[currentYear].at[movingIndex, 'faceoff_losing_team_xG_since_faceoff']
             xGoals = self.dfs[currentYear].at[movingIndex, 'xGoal']
-            if (self.dfs[currentYear].at[movingIndex,'event_type'] == 'GOAL' or self.dfs[currentYear].at[movingIndex,'event_type'] == 'MISS' or self.dfs[currentYear].at[movingIndex,'event_type'] == 'SHOT'):
-                if self.dfs[currentYear].at[movingIndex,'last_faceoff_winner_on_offense'] == False:
-                    if(xGoals > 0):
+            if (self.dfs[currentYear].at[movingIndex, 'event_type'] == 'GOAL' or self.dfs[currentYear].at[
+                movingIndex, 'event_type'] == 'MISS' or self.dfs[currentYear].at[movingIndex, 'event_type'] == 'SHOT'):
+                if self.dfs[currentYear].at[movingIndex, 'last_faceoff_winner_on_offense'] == False:
+                    if (xGoals > 0):
                         cumulativeExpectedGoals += xGoals
             movingIndex -= 1
         return cumulativeExpectedGoals
@@ -147,8 +156,7 @@ class SplitData:
         return returnValue
 
     def time_adjust(self, time1, time2):
-        return time1-time2
-    
+        return time1 - time2
 
     # def identifyZone(self, row):
     #     if ("Off. Zone" in str(row['event_description'])):
@@ -162,7 +170,7 @@ class SplitData:
 
     # Precondition: events sorted in chronological order
     def zoneChangesSinceLastEvent(self, key, row):
-        index = row['index'] # slightly shady.. fix later! .. this is a substitute for getting row's index directly
+        index = row['index']  # slightly shady.. fix later! .. this is a substitute for getting row's index directly
         if (index == 0 or index >= len(self.dfs[key].index)):
             return 0
         # if row['event_type'] == "CHANGE":
@@ -194,7 +202,8 @@ class SplitData:
         else:
             if priorEventTeam != currentEventTeam and (not priorEventZone == "Neu") and (not currentEventZone == "Neu"):
                 return 0
-            if priorEventTeam == currentEventTeam and priorEventZone != currentEventZone and (not priorEventZone == "Neu") and (not currentEventZone == "Neu"): # NEW
+            if priorEventTeam == currentEventTeam and priorEventZone != currentEventZone and (
+            not priorEventZone == "Neu") and (not currentEventZone == "Neu"):  # NEW
                 return 2
             else:
                 return 1
@@ -204,7 +213,8 @@ class SplitData:
             return np.NaN
         if (self.dfs[currentYear].at[row['index'], 'event_zone'] == "Neu"):
             return False
-        if (self.dfs[currentYear].at[row['index'], 'zone_changes_since_last_event'] > 0): # Given: current event is either offensive or defensive
+        if (self.dfs[currentYear].at[row[
+                                         'index'], 'zone_changes_since_last_event'] > 0):  # Given: current event is either offensive or defensive
             return True;
         # if (self.dfs[currentYear]).at[row['index'], 'event_zone'] != "Off": # Current event must be in offensive zone to potentially have start of offensive zone time
         #     return False
@@ -215,29 +225,34 @@ class SplitData:
     def isStartOfNeutralZoneTime(self, currentYear, row):
         if (row['index'] < 0 or row['index'] >= len(self.dfs[currentYear].index)):
             return np.NaN
-        if (self.dfs[currentYear]).at[row['index'], 'event_zone'] != "Neu": # Current event must be in offensive zone to potentially have start of offensive zone time
+        if (self.dfs[currentYear]).at[row[
+                                          'index'], 'event_zone'] != "Neu":  # Current event must be in offensive zone to potentially have start of offensive zone time
             return False
-        if (self.dfs[currentYear]).at[row['index'], 'zone_changes_since_last_event'] > 0: # Must be zone change if we are starting offensive zone time
+        if (self.dfs[currentYear]).at[row[
+                                          'index'], 'zone_changes_since_last_event'] > 0:  # Must be zone change if we are starting offensive zone time
             return True
-        #if self.time_adjust(self.dfs[currentYear].at[row['index'],'clock_time'], str(0)) == 1200:
+        # if self.time_adjust(self.dfs[currentYear].at[row['index'],'clock_time'], str(0)) == 1200:
         #   return True
         return False
 
     def isStartOfDefensiveZoneTime(self, currentYear, row):
         if (row['index'] < 0 or row['index'] >= len(self.dfs[currentYear].index)):
             return np.NaN
-        if (self.dfs[currentYear]).at[row['index'], 'event_zone'] == "Neu": # Current event must be in defensive zone to potentially have start of defensive zone time
+        if (self.dfs[currentYear]).at[row[
+                                          'index'], 'event_zone'] == "Neu":  # Current event must be in defensive zone to potentially have start of defensive zone time
             return False
-        if (self.dfs[currentYear]).at[row['index'], 'zone_changes_since_last_event'] > 0: # Must be zone change if we are starting defensive zone time
+        if (self.dfs[currentYear]).at[row[
+                                          'index'], 'zone_changes_since_last_event'] > 0:  # Must be zone change if we are starting defensive zone time
             return True
         return False
-
 
     def isEndOfOffensiveZoneTime(self, currentYear, row):
         if (row['index'] < 0 or row['index'] >= len(self.dfs[currentYear].index)):
             return np.NaN
-        cond1 = (self.dfs[currentYear]).at[row['index'], 'event_zone'] != "Off" and (self.dfs[currentYear]).at[row['index'], 'zone_changes_since_last_event'] > 0 # Current event not in offensive zone and there was a zone change since last event
-        cond2 = (self.dfs[currentYear]).at[row['index'], 'event_zone'] == "Off" and (self.dfs[currentYear]).at[row['index'], 'zone_changes_since_last_event'] == 2 # Current event in offensive zone but we crossed two zones since last event
+        cond1 = (self.dfs[currentYear]).at[row['index'], 'event_zone'] != "Off" and (self.dfs[currentYear]).at[row[
+                                                                                                                   'index'], 'zone_changes_since_last_event'] > 0  # Current event not in offensive zone and there was a zone change since last event
+        cond2 = (self.dfs[currentYear]).at[row['index'], 'event_zone'] == "Off" and (self.dfs[currentYear]).at[row[
+                                                                                                                   'index'], 'zone_changes_since_last_event'] == 2  # Current event in offensive zone but we crossed two zones since last event
         if cond1 or cond2:
             index = row['index']
             currentEventTeam = (self.dfs[currentYear]).at[index, 'event_team']
@@ -255,14 +270,16 @@ class SplitData:
                 return True
             if priorEventZone == "Def" and priorEventTeam != currentEventTeam:
                 return True
-            if priorEventZone != currentEventZone and priorEventTeam == currentEventTeam and (not priorEventZone == "Neu"): # NEW
+            if priorEventZone != currentEventZone and priorEventTeam == currentEventTeam and (
+            not priorEventZone == "Neu"):  # NEW
                 return True
         return False
 
     def isEndOfNeutralZoneTime(self, currentYear, row):
         if (row['index'] < 0 or row['index'] >= len(self.dfs[currentYear].index)):
             return np.NaN
-        cond = (self.dfs[currentYear]).at[row['index'], 'event_zone'] != "Neu" and (self.dfs[currentYear]).at[row['index'], 'zone_changes_since_last_event'] > 0
+        cond = (self.dfs[currentYear]).at[row['index'], 'event_zone'] != "Neu" and (self.dfs[currentYear]).at[
+            row['index'], 'zone_changes_since_last_event'] > 0
         if cond:
             index = row['index']
             currentEventTeam = (self.dfs[currentYear]).at[index, 'event_team']
@@ -283,8 +300,10 @@ class SplitData:
     def isEndOfDefensiveZoneTime(self, currentYear, row):
         if (row['index'] < 0 or row['index'] >= len(self.dfs[currentYear].index)):
             return np.NaN
-        cond1 = (self.dfs[currentYear]).at[row['index'], 'event_zone'] != "Off" and (self.dfs[currentYear]).at[row['index'], 'zone_changes_since_last_event'] > 0 # Current event not in offensive zone and there was a zone change since last event
-        cond2 = (self.dfs[currentYear]).at[row['index'], 'event_zone'] == "Off" and (self.dfs[currentYear]).at[row['index'], 'zone_changes_since_last_event'] == 2 # Current event in offensive zone but we crossed two zones since last event
+        cond1 = (self.dfs[currentYear]).at[row['index'], 'event_zone'] != "Off" and (self.dfs[currentYear]).at[row[
+                                                                                                                   'index'], 'zone_changes_since_last_event'] > 0  # Current event not in offensive zone and there was a zone change since last event
+        cond2 = (self.dfs[currentYear]).at[row['index'], 'event_zone'] == "Off" and (self.dfs[currentYear]).at[row[
+                                                                                                                   'index'], 'zone_changes_since_last_event'] == 2  # Current event in offensive zone but we crossed two zones since last event
         if cond1 or cond2:
             index = row['index']
             currentEventTeam = (self.dfs[currentYear]).at[index, 'event_team']
@@ -302,7 +321,8 @@ class SplitData:
                 return True
             if priorEventZone == "Def" and priorEventTeam != currentEventTeam:
                 return True
-            if priorEventZone != currentEventZone and priorEventTeam == currentEventTeam and (not priorEventZone == "Neu"): # NEW
+            if priorEventZone != currentEventZone and priorEventTeam == currentEventTeam and (
+            not priorEventZone == "Neu"):  # NEW
                 return True
         return False
 
@@ -311,58 +331,65 @@ class SplitData:
         if (row['index'] < 0 or row['index'] >= len(self.dfs[currentYear].index)):
             return np.NaN
         movingIndex = index
-        cumulativeNeutralZoneTime = 0      
+        cumulativeNeutralZoneTime = 0
         if (self.dfs[currentYear].at[index, 'end_neutral_zone_time'] == True):
             while (movingIndex >= 1 and self.dfs[currentYear].at[movingIndex, 'begin_neutral_zone_time'] != True):
                 movingIndex -= 1
-            cumulativeNeutralZoneTime = abs(self.dfs[currentYear].at[movingIndex,'game_seconds'] - row['game_seconds'])
+            cumulativeNeutralZoneTime = abs(self.dfs[currentYear].at[movingIndex, 'game_seconds'] - row['game_seconds'])
         return cumulativeNeutralZoneTime
-        
 
     def computeDefensiveZoneTime(self, currentYear, row):
         index = row['index']  # slightly shady.. fix later! .. this is a substitute for getting row's index directly
         if (row['index'] < 0 or row['index'] >= len(self.dfs[currentYear].index)):
             return np.NaN
-        movingIndex = index-1
+        movingIndex = index - 1
         cumulativeOffensiveZoneTime = 0
         if (self.dfs[currentYear].at[index, 'end_offensive_zone_time'] == True):
             while (movingIndex >= 0 and self.dfs[currentYear].at[movingIndex, 'begin_offensive_zone_time'] != True):
                 movingIndex -= 1
                 movingIndex -= 1
-            cumulativeOffensiveZoneTime = abs(row['game_seconds'] - self.dfs[currentYear].at[movingIndex,'game_seconds'])
+            cumulativeOffensiveZoneTime = abs(
+                row['game_seconds'] - self.dfs[currentYear].at[movingIndex, 'game_seconds'])
         return cumulativeOffensiveZoneTime
 
     def computeOffensiveZoneTime(self, currentYear, row):
         index = row['index']  # slightly shady.. fix later! .. this is a substitute for getting row's index directly
         if (row['index'] < 0 or row['index'] >= len(self.dfs[currentYear].index)):
             return np.NaN
-        movingIndex = index-1
+        movingIndex = index - 1
         cumulativeOffensiveZoneTime = 0
         if (self.dfs[currentYear].at[index, 'end_offensive_zone_time'] == True):
             while (movingIndex >= 0 and self.dfs[currentYear].at[movingIndex, 'begin_offensive_zone_time'] != True):
                 movingIndex -= 1
-            cumulativeOffensiveZoneTime = abs(row['game_seconds'] - self.dfs[currentYear].at[movingIndex,'game_seconds'])
+            cumulativeOffensiveZoneTime = abs(
+                row['game_seconds'] - self.dfs[currentYear].at[movingIndex, 'game_seconds'])
         return cumulativeOffensiveZoneTime
-    
+
     def computeOffensiveZoneFACTime(self, currentYear, row):
         index = row['index']  # slightly shady.. fix later! .. this is a substitute for getting row's index directly
         if (row['index'] < 0 or row['index'] >= len(self.dfs[currentYear].index)):
             return np.NaN
-        movingIndex = index+1
+        movingIndex = index + 1
         cumulativeOffensiveZoneTime = 0
-        if (self.dfs[currentYear].at[index, 'event_type'] == 'FAC' and self.dfs[currentYear].at[index, 'event_zone'] != 'Neu'):
-            while (movingIndex < len(self.dfs[currentYear].index) - 1 and self.dfs[currentYear].at[movingIndex, 'end_offensive_zone_time'] != True and self.dfs[currentYear].at[movingIndex, 'event_type'] != 'FAC'):
+        if (self.dfs[currentYear].at[index, 'event_type'] == 'FAC' and self.dfs[currentYear].at[
+            index, 'event_zone'] != 'Neu'):
+            while (movingIndex < len(self.dfs[currentYear].index) - 1 and self.dfs[currentYear].at[
+                movingIndex, 'end_offensive_zone_time'] != True and self.dfs[currentYear].at[
+                       movingIndex, 'event_type'] != 'FAC'):
                 movingIndex += 1
-            cumulativeOffensiveZoneTime = abs(row['game_seconds'] - self.dfs[currentYear].at[movingIndex,'game_seconds'])
+            cumulativeOffensiveZoneTime = abs(
+                row['game_seconds'] - self.dfs[currentYear].at[movingIndex, 'game_seconds'])
         return cumulativeOffensiveZoneTime
-    
+
     def getToOffensiveZone(self, currentYear, row):
         index = row['index']
         if (row['index'] < 0 or row['index'] >= len(self.dfs[currentYear].index)):
             return np.NaN
-        movingIndex = index+1
-        if (self.dfs[currentYear].at[index,'event_zone'] == 'Neu' and self.dfs[currentYear].at[index, 'event_type'] == 'FAC'):
-            while(movingIndex < len(self.dfs[currentYear].index) - 1 and self.dfs[currentYear].at[movingIndex, 'event_zone'] != 'Off' and self.dfs[currentYear].at[movingIndex, 'event_zone'] != 'Def'):
+        movingIndex = index + 1
+        if (self.dfs[currentYear].at[index, 'event_zone'] == 'Neu' and self.dfs[currentYear].at[
+            index, 'event_type'] == 'FAC'):
+            while (movingIndex < len(self.dfs[currentYear].index) - 1 and self.dfs[currentYear].at[
+                movingIndex, 'event_zone'] != 'Off' and self.dfs[currentYear].at[movingIndex, 'event_zone'] != 'Def'):
                 movingIndex += 1
             if self.dfs[currentYear].at[movingIndex, 'event_zone'] == 'Off':
                 if self.dfs[currentYear].at[movingIndex, 'event_team'] == self.dfs[currentYear].at[index, 'event_team']:
@@ -374,27 +401,27 @@ class SplitData:
                     return False
                 else:
                     return True
-                
-    def offensiveZoneNEUTime(self, currentYear,row):
+
+    def offensiveZoneNEUTime(self, currentYear, row):
         index = row['index']
         if (row['index'] < 0 or row['index'] >= len(self.dfs[currentYear].index)):
             return np.NaN
-        movingIndex = index+1
+        movingIndex = index + 1
         timeInZone = 0
-        if(self.dfs[currentYear].at[index, 'getToOffensiveZone'] == True):
-            while(movingIndex < len(self.dfs[currentYear].index) - 1 and self.dfs[currentYear].at[movingIndex, 'end_offensive_zone_time'] != True):
+        if (self.dfs[currentYear].at[index, 'getToOffensiveZone'] == True):
+            while (movingIndex < len(self.dfs[currentYear].index) - 1 and self.dfs[currentYear].at[
+                movingIndex, 'end_offensive_zone_time'] != True):
                 movingIndex += 1
-            timeInZone =  self.dfs[currentYear].at[movingIndex, 'offensive_zone_time']
+            timeInZone = self.dfs[currentYear].at[movingIndex, 'offensive_zone_time']
         return timeInZone
-                
 
     def trunc_time_to_intervals(self, untruncatedTime, intervalSize):
-        categorization = untruncatedTime // intervalSize # Note the integer division
+        categorization = untruncatedTime // intervalSize  # Note the integer division
         return categorization * intervalSize
 
     def auditTiming(self):
         currentTime = time.time()
-        #print("time:", str(int(currentTime - SplitData.lastTime)), "seconds")
+        # print("time:", str(int(currentTime - SplitData.lastTime)), "seconds")
         SplitData.lastTime = currentTime
 
     def computedColumns(self):
@@ -408,35 +435,35 @@ class SplitData:
             print("applying indices")
             (self.dfs[key])['index'] = (self.dfs[key]).apply(lambda row: self.applyIndex(row),
                                                              axis=1)
-            #(self.dfs[key]) = (self.dfs[key]).head(1000)  # Use for testing purposes only
-            assert(key == initialKey)
+            # (self.dfs[key]) = (self.dfs[key]).head(1000)  # Use for testing purposes only
+            assert (key == initialKey)
             print("computing last faceoff time")
             (self.dfs[key])['last_faceoff_time'] = (self.dfs[key]).apply(lambda row: self.findLastFaceoffTime(key, row),
                                                                          axis=1)
-            #print("last faceoff time determination complete")
-            #self.auditTiming()
+            # print("last faceoff time determination complete")
+            # self.auditTiming()
             # (self.dfs[key])['time_since_last_faceoff'] = (self.dfs[key]).apply(lambda row : self.time_adjust((self.dfs[key])['time'], (self.dfs[key])['last_faceoff_time']))
             # (self.dfs[key])['truncated_time'] = (self.dfs[key]).apply(lambda row : self.trunc_time_to_intervals((self.dfs[key])['time'], 0.5))
             # DON'T USE (self.dfs[key])['zone'] = (self.dfs[key]).apply(lambda row : self.identifyZone(row), axis=1)
             # print("zone identification complete")
-            #self.auditTiming()
+            # self.auditTiming()
             assert (key == initialKey)
             print("zone_changes_since_last_event")
             (self.dfs[key])['zone_changes_since_last_event'] = (self.dfs[key]).apply(
                 lambda row: self.zoneChangesSinceLastEvent(key, row), axis=1)
-            #print("zone changes since last event identification complete")
-            #self.auditTiming()
+            # print("zone changes since last event identification complete")
+            # self.auditTiming()
             assert (key == initialKey)
             print("time_since_faceoff")
             (self.dfs[key])['time_since_faceoff'] = (self.dfs[key]).apply(
                 lambda row: self.time_adjust(row['game_seconds'], row['last_faceoff_time']), axis=1)
-            #print("time since last faceoff complete")
-            #self.auditTiming()
+            # print("time since last faceoff complete")
+            # self.auditTiming()
             assert (key == initialKey)
             print("zone_changes_since_faceoff")
             (self.dfs[key])['zone_changes_since_faceoff'] = (self.dfs[key]).apply(
                 lambda row: self.findZoneChangesSinceLastFaceoff(key, row), axis=1)
-            #print("zone changes since last faceoff complete")
+            # print("zone changes since last faceoff complete")
             assert (key == initialKey)
             print("xG_since_faceoff")
             (self.dfs[key])['xG_since_faceoff'] = 0
@@ -462,10 +489,10 @@ class SplitData:
             (self.dfs[key])['end_neutral_zone_time'] = (self.dfs[key]).apply(
                 lambda row: self.isEndOfNeutralZoneTime(key, row), axis=1)
             assert (key == initialKey)
-            #(self.dfs[key])['offensive_zone_time'] = 0
-            #(self.dfs[key])['defensive_zone_time'] = 0
-            #(self.dfs[key])['neutral_zone_time'] = 0
-            #assert (key == initialKey)
+            # (self.dfs[key])['offensive_zone_time'] = 0
+            # (self.dfs[key])['defensive_zone_time'] = 0
+            # (self.dfs[key])['neutral_zone_time'] = 0
+            # assert (key == initialKey)
             # (self.dfs[key])['offensive_zone_time'] = (self.dfs[key]).apply(
             #     lambda row: self.computeOffensiveZoneTime(key, row), axis=1)
             # assert (key == initialKey)
@@ -526,7 +553,7 @@ class SplitData:
         for key in self.dfs.keys():
             analyticsDataFrame = analyticsDataFrame.append(self.dfs[key], ignore_index=True)
         analyticsDataFrame.to_csv("offense_post_faceoff.csv")
-     
+
     def identifyOffensiveTeam(self, currentYear, row):
         index = row['index']
         if (row['index'] < 0 or row['index'] >= len(self.dfs[currentYear].index)):
@@ -580,13 +607,15 @@ class SplitData:
         index = row['index']
         if (row['index'] < 0 or row['index'] >= len(self.dfs[currentYear].index)):
             return np.NaN
-        return self.dfs[currentYear].at[index, 'offensive_team'] == self.dfs[currentYear].at[index, 'last_faceoff_winning_team']
+        return self.dfs[currentYear].at[index, 'offensive_team'] == self.dfs[currentYear].at[
+            index, 'last_faceoff_winning_team']
 
     def faceoffWinnerOnDefense(self, currentYear, row):
         index = row['index']
         if (row['index'] < 0 or row['index'] >= len(self.dfs[currentYear].index)):
             return np.NaN
-        return self.dfs[currentYear].at[index, 'offensive_team'] != self.dfs[currentYear].at[index, 'last_faceoff_winning_team'] and self.dfs[currentYear].at[index, 'event_zone'] != "Neu"
+        return self.dfs[currentYear].at[index, 'offensive_team'] != self.dfs[currentYear].at[
+            index, 'last_faceoff_winning_team'] and self.dfs[currentYear].at[index, 'event_zone'] != "Neu"
 
     def isCurrentlyOffensiveZoneTime(self, currentYear, row):
         index = row['index']
@@ -602,7 +631,6 @@ class SplitData:
                 return False
             movingIndex -= 1
         return False
-
 
     def expectedGoalsSinceFaceoffWithZoneChanges(self, currentYear, row):
         index = row['index']  # slightly shady.. fix later! .. this is a substitute for getting row's index directly
@@ -660,12 +688,19 @@ class SplitData:
         while (movingIndex > 0 and movingIndex < len(self.dfs[currentYear].index)):
             if self.dfs[currentYear].at[movingIndex, 'event_type'] == 'FAC':
                 newMovingIndex = movingIndex + 1
-                while (newMovingIndex > 0 and newMovingIndex < len(self.dfs[currentYear].index) - 1 and not (self.dfs[currentYear].at[newMovingIndex, 'event_zone'] == 'Off' or self.dfs[currentYear].at[newMovingIndex, 'event_zone'] == 'Neu' or self.dfs[currentYear].at[newMovingIndex, 'event_zone'] == 'Def')):
+                while (newMovingIndex > 0 and newMovingIndex < len(self.dfs[currentYear].index) - 1 and not (
+                        self.dfs[currentYear].at[newMovingIndex, 'event_zone'] == 'Off' or self.dfs[currentYear].at[
+                    newMovingIndex, 'event_zone'] == 'Neu' or self.dfs[currentYear].at[
+                            newMovingIndex, 'event_zone'] == 'Def')):
                     newMovingIndex += 1
                 otherMovingIndex = movingIndex
-                while (otherMovingIndex > 0 and otherMovingIndex < len(self.dfs[currentYear].index) - 1 and not (self.dfs[currentYear].at[newMovingIndex, 'event_zone'] == 'Off' or self.dfs[currentYear].at[newMovingIndex, 'event_zone'] == 'Neu' or self.dfs[currentYear].at[newMovingIndex, 'event_zone'] == 'Def')):
+                while (otherMovingIndex > 0 and otherMovingIndex < len(self.dfs[currentYear].index) - 1 and not (
+                        self.dfs[currentYear].at[newMovingIndex, 'event_zone'] == 'Off' or self.dfs[currentYear].at[
+                    newMovingIndex, 'event_zone'] == 'Neu' or self.dfs[currentYear].at[
+                            newMovingIndex, 'event_zone'] == 'Def')):
                     otherMovingIndex -= 1
-                return self.dfs[currentYear].at[newMovingIndex, 'offensive_team'] == self.dfs[currentYear].at[otherMovingIndex, 'event_team']
+                return self.dfs[currentYear].at[newMovingIndex, 'offensive_team'] == self.dfs[currentYear].at[
+                    otherMovingIndex, 'event_team']
             movingIndex -= 1
         return np.NaN
         # index = row['index']
@@ -688,40 +723,6 @@ class SplitData:
         #     return False
 
 
-
-def main():
-    # sd = SplitData(2015, 2020, True)
-    # for year in range(2015, 2020):
-    #     print(year)
-    #     (sd.dfs[year])['offense_team_won_faceoff'] = (sd.dfs[year]).apply(
-    #         lambda row: sd.offensiveTeamWonFaceoff(year, row), axis=1)
-    #     sd.dfs[year].to_csv("faceoff_analytics_new_" + str(year) + ".csv")
-    #     (sd.dfs[year])['last_event_before_faceoff'] = (sd.dfs[year]).apply(
-    #         lambda row: sd.isLastEventBeforeFaceoff(year, row), axis=1)
-    # combineDfs()
-
-    # SplitData.start = time.time()
-    startYear = 2015
-    endYear = 2019 # inclusive
-    for year in range(startYear, endYear + 1):
-        SplitData.count = 0
-        sd = SplitData(year, year+1)
-        sd.loadMergedData()
-        sd.xG_from_faceoffs()
-        #sd.analyzeOffensePostFaceoff()
-    sd = SplitData(2012, 2015)
-    # sd.splitData()
-    # sd.readSplitData()
-    sd.loadMergedData()
-    sd.xG_from_faceoffs()
-    #sd.analyzeOffensePostFaceoff()
-    combineDfs()
-    # end = time.time()
-    # print("overall run time:", str(int(end - SplitData.start)))
-
-    centers = faceoffImpactsByCenter()
-    analyzePlayerFaceoffValue(centers)
-
 def faceoffImpactsByCenter():
     # Players
     #   Years
@@ -733,7 +734,7 @@ def faceoffImpactsByCenter():
     #       Power Play
     #       WITHIN EACH: count, avg, stdev, median, sum, faceoffs
     centers = dict()
-    startYear = 2015
+    startYear = 2007
     endYear = 2020
     for year in range(startYear, endYear):
         # Read in list of centers
@@ -750,7 +751,8 @@ def faceoffImpactsByCenter():
                         # Future TODO: add team as dimension here
                     if year not in (centers[player]).keys():
                         (centers[player])[year] = dict()
-                        for category in ['offensive_zone', 'defensive_zone', 'neutral_zone', 'penalty_kill', 'power_play']:
+                        for category in ['offensive_zone', 'defensive_zone', 'neutral_zone', 'penalty_kill',
+                                         'power_play']:
                             (((centers[player])[year])[category]) = dict()
                             (((centers[player])[year])[category])['wins'] = dict()
                             (((centers[player])[year])[category])['losses'] = dict()
@@ -776,29 +778,46 @@ def faceoffImpactsByCenter():
                 movingIndex = row['index'] + 1
                 if movingIndex < 0 or movingIndex >= len(pbp_df.index):
                     break
-                while movingIndex < (len(pbp_df.index) - 1) and pbp_df.at[movingIndex, 'zone_changes_since_last_event'] == 0 and pbp_df.at[movingIndex, 'event_type'] != 'FAC':
+                while movingIndex < (len(pbp_df.index) - 1) and pbp_df.at[
+                    movingIndex, 'zone_changes_since_last_event'] == 0 and pbp_df.at[
+                    movingIndex, 'event_type'] != 'FAC':
                     movingIndex += 1
                 if pbp_df.at[movingIndex, 'event_type'] == 'FAC' and movingIndex > 0:
                     movingIndex -= 1
                 newRow = pbp_df.iloc[movingIndex]
                 ((((centers[winningPlayer])[year])[winnerCategorization])['wins_for'])['count'] += 1
                 ((((centers[winningPlayer])[year])[winnerCategorization])['wins_against'])['count'] += 1
-                (((((centers[winningPlayer])[year])[winnerCategorization])['wins_for'])['faceoffs']).append(newRow['faceoff_winning_team_xG_since_faceoff'])
-                (((((centers[winningPlayer])[year])[winnerCategorization])['wins_against'])['faceoffs']).append(-1 * newRow['faceoff_losing_team_xG_since_faceoff'])
-                ((((centers[winningPlayer])[year])[winnerCategorization])['wins_for'])['sum'] += row['faceoff_winning_team_xG_since_faceoff']
-                ((((centers[winningPlayer])[year])[winnerCategorization])['wins_against'])['sum'] += (-1 * newRow['faceoff_losing_team_xG_since_faceoff'])
+                (((((centers[winningPlayer])[year])[winnerCategorization])['wins_for'])['faceoffs']).append(
+                    newRow['faceoff_winning_team_xG_since_faceoff'])
+                (((((centers[winningPlayer])[year])[winnerCategorization])['wins_against'])['faceoffs']).append(
+                    -1 * newRow['faceoff_losing_team_xG_since_faceoff'])
+                ((((centers[winningPlayer])[year])[winnerCategorization])['wins_for'])['sum'] += row[
+                    'faceoff_winning_team_xG_since_faceoff']
+                ((((centers[winningPlayer])[year])[winnerCategorization])['wins_against'])['sum'] += (
+                            -1 * newRow['faceoff_losing_team_xG_since_faceoff'])
                 ((((centers[losingPlayer])[year])[loserCategorization])['losses_for'])['count'] += 1
                 ((((centers[losingPlayer])[year])[loserCategorization])['losses_against'])['count'] += 1
-                (((((centers[losingPlayer])[year])[loserCategorization])['losses_for'])['faceoffs']).append(newRow['faceoff_losing_team_xG_since_faceoff'])
-                (((((centers[losingPlayer])[year])[loserCategorization])['losses_against'])['faceoffs']).append(-1 * newRow['faceoff_winning_team_xG_since_faceoff'])
-                ((((centers[losingPlayer])[year])[loserCategorization])['losses_for'])['sum'] += newRow['faceoff_losing_team_xG_since_faceoff']
-                ((((centers[losingPlayer])[year])[loserCategorization])['losses_against'])['sum'] += (-1 * newRow['faceoff_winning_team_xG_since_faceoff'])
+                (((((centers[losingPlayer])[year])[loserCategorization])['losses_for'])['faceoffs']).append(
+                    newRow['faceoff_losing_team_xG_since_faceoff'])
+                (((((centers[losingPlayer])[year])[loserCategorization])['losses_against'])['faceoffs']).append(
+                    -1 * newRow['faceoff_winning_team_xG_since_faceoff'])
+                ((((centers[losingPlayer])[year])[loserCategorization])['losses_for'])['sum'] += newRow[
+                    'faceoff_losing_team_xG_since_faceoff']
+                ((((centers[losingPlayer])[year])[loserCategorization])['losses_against'])['sum'] += (
+                            -1 * newRow['faceoff_winning_team_xG_since_faceoff'])
     return centers
+
 
 def analyzePlayerFaceoffValue(centers):
     print("analyzing player faceoff value")
     import statistics
-    output_df = pd.DataFrame(columns=['player_year_key', 'player', 'offensive_zone_avg', 'offensive_zone_variability', 'offensive_zone_count', 'defensive_zone_avg', 'defensive_zone_variability', 'defensive_zone_count', 'neutral_zone_avg', 'neutral_zone_variability', 'neutral_zone_count', 'penalty_kill_avg', 'penalty_kill_variability', 'penalty_kill_count', 'power_play_avg', 'power_play_variabilty', 'power_play_count', 'overall_avg', 'overall_variability', 'overall_count', 'positive_value_probability'])
+    output_df = pd.DataFrame(columns=['player_year_key', 'player', 'offensive_zone_avg', 'offensive_zone_variability',
+                                      'offensive_zone_count', 'defensive_zone_avg', 'defensive_zone_variability',
+                                      'defensive_zone_count', 'neutral_zone_avg', 'neutral_zone_variability',
+                                      'neutral_zone_count', 'penalty_kill_avg', 'penalty_kill_variability',
+                                      'penalty_kill_count', 'power_play_avg', 'power_play_variabilty',
+                                      'power_play_count', 'overall_avg', 'overall_variability', 'overall_count',
+                                      'positive_value_probability'])
     for player in centers.keys():
         for year in (centers[player]).keys():
             playerYearKey = str(player) + "_" + str(year)
@@ -809,7 +828,10 @@ def analyzePlayerFaceoffValue(centers):
                 # winsAgainstCount = ((((centers[player])[year])[cat])['wins_against'])['count']
                 # winsForSum = ((((centers[player])[year])[cat])['wins_for'])['sum']
                 # winsAgainstSum = ((((centers[player])[year])[cat])['wins_against'])['sum']
-                combined = (((((centers[player])[year])[cat])['wins_for']))['faceoffs'] + (((((centers[player])[year])[cat])['wins_against'])['faceoffs']) + (((((centers[player])[year])[cat])['losses_for'])['faceoffs']) + (((((centers[player])[year])[cat])['losses_against'])['faceoffs'])
+                combined = (((((centers[player])[year])[cat])['wins_for']))['faceoffs'] + (
+                ((((centers[player])[year])[cat])['wins_against'])['faceoffs']) + (
+                           ((((centers[player])[year])[cat])['losses_for'])['faceoffs']) + (
+                           ((((centers[player])[year])[cat])['losses_against'])['faceoffs'])
                 if len(combined) > 1:
                     avg = statistics.mean(combined)
                     stdev = statistics.stdev(combined)
@@ -845,13 +867,21 @@ def analyzePlayerFaceoffValue(centers):
     expectations = dict()
     for cat in ['offensive_zone', 'defensive_zone', 'neutral_zone', 'penalty_kill', 'power_play']:
         output_df[str(cat) + '_total'] = output_df[str(cat) + '_avg'] * output_df[str(cat) + '_count']
-        expectations[cat] = (output_df[str(cat) + '_total']).sum(skipna = True) / (output_df[str(cat) + '_count']).sum(skipna = True)
+        expectations[cat] = (output_df[str(cat) + '_total']).sum(skipna=True) / (output_df[str(cat) + '_count']).sum(
+            skipna=True)
     print("expectations is")
     print(expectations)
     for cat in ['offensive_zone', 'defensive_zone', 'neutral_zone', 'penalty_kill', 'power_play']:
         output_df[str(cat) + '_expected_total'] = expectations[cat] * output_df[str(cat) + '_count']
-        output_df[str(cat) + '_vs._expectation'] = output_df[str(cat) + '_total'] - output_df[str(cat) + '_expected_total']
-    output_df.to_csv("player_faceoff_value.csv")
+        output_df[str(cat) + '_vs._expectation'] = output_df[str(cat) + '_total'] - output_df[
+            str(cat) + '_expected_total']
+    output_df['total_vs._expectation'] = output_df['offensive_zone_vs._expectation'] + output_df[
+        'defensive_zone_vs._expectation']
+    output_df = assignTeams(output_df)
+    output_df.to_excel("player_faceoff_values.xlsx")
+    output_df.to_csv("player_faceoff_values.csv")
+    return output_df
+
 
 def categorizeFaceoffGrouping(row):
     # Returns 2-element array where first element is state of faceoff winner and second element is state of faceoff loser
@@ -889,6 +919,7 @@ def categorizeFaceoffGrouping(row):
         else:
             return ["other", "other"]
 
+
 def aggregateShotsData():
     startingYear = 2011
     df = pd.read_csv("offense_post_faceoff_" + str(startingYear) + ".csv")
@@ -901,10 +932,12 @@ def aggregateShotsData():
     for year in range(startingYear + 1, 2021):
         print(year)
         df = pd.read_csv("offense_post_faceoff_" + str(year) + ".csv")
-        df['shot_related_stats'] = (df['event_type'] == 'FAC') | (df['event_type'] == 'SHOT') | (df['event_type'] == 'MISS')
+        df['shot_related_stats'] = (df['event_type'] == 'FAC') | (df['event_type'] == 'SHOT') | (
+                    df['event_type'] == 'MISS')
         df = df[df['shot_related_stats'] == True]
         aggregateDf = aggregateDf.append(df, ignore_index=True)
     aggregateDf.to_csv("shot_related_offense_post_faceoff.csv")
+
 
 def combineDfs():
     aggregateDf = pd.read_csv("faceoff_analytics_new_" + str(2015) + ".csv")
@@ -913,6 +946,153 @@ def combineDfs():
         df = pd.read_csv("faceoff_analytics_new_" + str(year) + ".csv")
         aggregateDf = aggregateDf.append(df, ignore_index=True)
     aggregateDf.to_csv("faceoff_analytics.csv")
+
+
+def assignTeams(df):
+    lookupDfs = {}
+    df['team'] = ""
+    for index, row in df.iterrows():
+        playerYearKey = row['player_year_key']
+        year = int(playerYearKey[(len(playerYearKey) - 4):])
+        print(year)
+        if year not in lookupDfs.keys():
+            lookupDfs[year] = pd.read_csv(
+                "EH_std_sk_stats_all_regular_no_adj_" + str(year) + "-" + str(year + 1) + ".csv")
+        player = row['player']
+        print(player)
+        playerList = list((lookupDfs[year])['EH_ID'])
+        indexOfMatch = np.NaN
+        if player in playerList:
+            indexOfMatch = playerList.index(player)
+        else:
+            continue
+        print(indexOfMatch)
+        team = (lookupDfs[year]).at[indexOfMatch, 'Team']
+        df.at[index, 'team'] = team
+    return df
+
+
+def assignTeamTotals(df):
+    lookupDfs = {}
+    df['total_vs._expectation'] = df['offensive_zone_vs._expectation'] + df['defensive_zone_vs._expectation']
+    df['team_total'] = np.NaN
+    df['offensive_zone_team_total'] = np.NaN
+    df['defensive_zone_team_total'] = np.NaN
+    df['power_play_team_total'] = np.NaN
+    df['penalty_kill_team_total'] = np.NaN
+    df['team_rank'] = np.NaN
+    df['offensive_zone_team_rank'] = np.NaN
+    df['defensive_zone_team_rank'] = np.NaN
+    df['power_play_team_rank'] = np.NaN
+    df['penalty_kill_team_rank'] = np.NaN
+    df['year'] = np.NaN
+    teamTotals = {}
+    offensiveTeamTotals = {}
+    defensiveTeamTotals = {}
+    powerPlayTeamTotals = {}
+    penaltyKillTeamTotals = {}
+    for index, row in df.iterrows():
+        playerYearKey = row['player_year_key']
+        year = int(playerYearKey[(len(playerYearKey) - 4):])
+        df.at[index, 'year'] = year
+        if year not in teamTotals.keys():
+            teamTotals[year] = {}
+            offensiveTeamTotals[year] = {}
+            defensiveTeamTotals[year] = {}
+            powerPlayTeamTotals[year] = {}
+            penaltyKillTeamTotals[year] = {}
+        team = row['team']
+        if team not in (teamTotals[year]).keys():
+            (teamTotals[year])[team] = 0
+            (offensiveTeamTotals[year])[team] = 0
+            (defensiveTeamTotals[year])[team] = 0
+            (powerPlayTeamTotals[year])[team] = 0
+            (penaltyKillTeamTotals[year])[team] = 0
+        if not np.isnan(row['total_vs._expectation']):
+            (teamTotals[year])[team] += row['total_vs._expectation']
+        if not np.isnan(row['offensive_zone_vs._expectation']):
+            (offensiveTeamTotals[year])[team] += row['offensive_zone_vs._expectation']
+        if not np.isnan(row['defensive_zone_vs._expectation']):
+            (defensiveTeamTotals[year])[team] += row['defensive_zone_vs._expectation']
+        if not np.isnan(row['power_play_vs._expectation']):
+            (powerPlayTeamTotals[year])[team] += row['power_play_vs._expectation']
+        if not np.isnan(row['penalty_kill_vs._expectation']):
+            (penaltyKillTeamTotals[year])[team] += row['penalty_kill_vs._expectation']
+    for dictionary in [teamTotals, offensiveTeamTotals, defensiveTeamTotals, powerPlayTeamTotals,
+                       penaltyKillTeamTotals]:
+        for year in dictionary.keys():
+            # code from https://stackabuse.com/how-to-sort-dictionary-by-value-in-python/ to sort dictionary by values
+            import operator
+            d = dictionary[year]
+            sorted_tuples = sorted(d.items(), key=operator.itemgetter(1))
+            d_sorted = {k: v for k, v in sorted_tuples}
+            dictionary[year] = d_sorted
+    for index, row in df.iterrows():
+        currentYearAsString = (str(row['year']))[0:4]  # current year is a string in the form of, e.g., '2022.0'
+        currentYear = int(currentYearAsString)
+        df.at[index, 'team_total'] = (teamTotals[currentYear])[row['team']]
+        df.at[index, 'offensive_zone_team_total'] = (offensiveTeamTotals[currentYear])[row['team']]
+        df.at[index, 'defensive_zone_team_total'] = (defensiveTeamTotals[currentYear])[row['team']]
+        df.at[index, 'power_play_team_total'] = (powerPlayTeamTotals[currentYear])[row['team']]
+        df.at[index, 'penalty_kill_team_total'] = (penaltyKillTeamTotals[currentYear])[row['team']]
+        currentList = list((teamTotals[currentYear]).keys())
+        df.at[index, 'team_rank'] = len(currentList) - (currentList.index(row['team'])) - 1
+        currentList = list((offensiveTeamTotals[currentYear]).keys())
+        df.at[index, 'offensive_zone_team_rank'] = len(currentList) - (currentList.index(row['team'])) - 1
+        currentList = list((defensiveTeamTotals[currentYear]).keys())
+        df.at[index, 'defensive_zone_team_rank'] = len(currentList) - (currentList.index(row['team'])) - 1
+        currentList = list((powerPlayTeamTotals[currentYear]).keys())
+        df.at[index, 'power_play_team_rank'] = len(currentList) - (currentList.index(row['team'])) - 1
+        currentList = list((penaltyKillTeamTotals[currentYear]).keys())
+        df.at[index, 'penalty_kill_team_rank'] = len(currentList) - (currentList.index(row['team'])) - 1
+    print("returning dfs")
+    return df
+
+
+def test_local_configuration():
+    sd = SplitData(2015, 2020, True)
+    sd.loadMergedData()
+    print("Done: your initial setup is acceptable!")
+
+
+def main():
+    # sd = SplitData(2015, 2020, True)
+    # for year in range(2015, 2020):
+    #     print(year)
+    #     (sd.dfs[year])['offense_team_won_faceoff'] = (sd.dfs[year]).apply(
+    #         lambda row: sd.offensiveTeamWonFaceoff(year, row), axis=1)
+    #     sd.dfs[year].to_csv("faceoff_analytics_new_" + str(year) + ".csv")
+    #     (sd.dfs[year])['last_event_before_faceoff'] = (sd.dfs[year]).apply(
+    #         lambda row: sd.isLastEventBeforeFaceoff(year, row), axis=1)
+    # combineDfs()
+
+    # SplitData.start = time.time()
+    # startYear = 2007
+    # endYear = 2011 # inclusive
+    # for year in range(startYear, endYear + 1):
+    #     SplitData.count = 0
+    #     sd = SplitData(year, year+1)
+    #     sd.loadMergedData()
+    #     sd.xG_from_faceoffs()
+    # sd.analyzeOffensePostFaceoff()
+    # sd = SplitData(2012, 2015)
+    # # sd.splitData()
+    # # sd.readSplitData()
+    # sd.loadMergedData()
+    # sd.xG_from_faceoffs()
+    # #sd.analyzeOffensePostFaceoff()
+    # combineDfs()
+    # end = time.time()
+    # print("overall run time:", str(int(end - SplitData.start)))
+
+    # Following 4 lines were what was previously present:
+    # centers = faceoffImpactsByCenter()
+    # df = analyzePlayerFaceoffValue(centers)
+    # df = assignTeamTotals(df)
+    # df.to_csv("player_faceoff_values.csv")
+
+    test_local_configuration()
+
 
 if __name__ == "__main__":
     main()
