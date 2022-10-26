@@ -53,5 +53,30 @@ connnect_skaters_to_team_goaltending = function() {
   skaters = get_player_data()
   team_season_goaltending = compute_goaltending_by_team_season()
   skaters_with_goaltending = skaters %>%
-    inner_join(team_season_goaltending, by = c('Team', 'Season'))
+    inner_join(team_season_goaltending, by = c('Team', 'Season'), suffix = c("", "_goaltending"))
+  return(skaters_with_goaltending)
+}
+
+compute_team_performance_by_season = function() {
+  eh_teams = read_eh_team()
+  eh_teams_conditioned = eh_teams %>%
+    select(-c(Name, GP, TOI))
+  
+  eh_team_standings = read_eh_team_standings()
+  eh_team_standings_conditioned = eh_team_standings %>%
+    select(-c(Name, GP, TOI, ROW))
+  
+  eh_team_summary = eh_teams_conditioned %>%
+    inner_join(eh_team_standings_conditioned, by = c('Team', 'Season'), suffix = c('_adjusted', '')) 
+  # eh_teams contains adjusted data, eh_team_standings contains unadjusted data. Therefore, if same field in both but has different values in each, it's due to adjustment.
+  
+  return(eh_team_summary)
+}
+
+connect_skaters_and_goaltending_to_team_performance = function() {
+  skaters_with_goaltending = connect_skaters_to_team_goaltending()
+  eh_team_summary = compute_team_performance_by_season()
+  skaters_with_goaltending_and_teams = skaters_with_goaltending %>%
+    inner_join(eh_team_summary, by = c('Team', 'Season'), suffix = c('', '_team'))
+  return(skaters_with_goaltending_and_teams)
 }
