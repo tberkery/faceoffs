@@ -26,3 +26,11 @@ get_player_data = function() {
   
   skaters = skaters %>% inner_join(eh_zones, by = c('EH_ID', 'Season'))
 }
+
+compute_goaltending_by_team_season = function() {
+  eh_goalies = read_eh_goalies()
+  team_season_goaltending = eh_goalies %>%
+    select(-c('Player', 'EH_ID', ))
+    group_by(Team, Season) %>%
+    mutate()
+}
