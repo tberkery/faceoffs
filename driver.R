@@ -25,12 +25,33 @@ get_player_data = function() {
   eh_zones = read_eh_zones() %>% select(-c(Player, `API ID`, Team, Position, Shoots, Birthday, Age, `Draft Yr`, `Draft Rd`, `Draft Ov`, GP, TOI))
   
   skaters = skaters %>% inner_join(eh_zones, by = c('EH_ID', 'Season'))
+  return(skaters)
 }
 
 compute_goaltending_by_team_season = function() {
   eh_goalies = read_eh_goalies()
   team_season_goaltending = eh_goalies %>%
-    select(-c('Player', 'EH_ID', ))
+    select(-c(Player, EH_ID, `API ID`, Position, Catches, Birthday, starts_with('Draft'), GP, TOI)) %>%
     group_by(Team, Season) %>%
-    mutate()
+    mutate(across(c(Age, `Sv%`, `FSv%`, `xFSv%`, `dFSv%`), ~weighted.mean(., na.rm = TRUE))) %>%
+    mutate(across(c(GA, SA, FA, xGA, GSAA, GSAx), ~sum(., na.rm = TRUE))) %>%
+    distinct(Team, Season, .keep_all = TRUE)
+  
+  eh_goalies_gar = read_eh_gar_goalies()
+  team_season_goalie_gar = eh_goalies_gar %>%
+    select(-c(Player, EH_ID, `API ID`, Position, Catches, Birthday, Age, starts_with("Draft"), GP)) %>%
+    group_by(Team, Season) %>%
+    mutate(across(c(TOI_EV, TOI_SH, FA_EV, FA_SH, EVD_GAR, SHD_GAR, Take_GAR, Draw_GAR, GAR, WAR, SPAR), ~sum(., na.rm = TRUE))) %>%
+    distinct(Team, Season, .keep_all = TRUE)
+  
+  team_season_goaltending = team_season_goaltending %>%
+    inner_join(team_season_goalie_gar, by = c('Team', 'Season'))
+  return(team_season_goaltending)
+}
+
+connnect_skaters_to_team_goaltending = function() {
+  skaters = get_player_data()
+  team_season_goaltending = compute_goaltending_by_team_season()
+  skaters_with_goaltending = skaters %>%
+    inner_join(team_season_goaltending, by = c('Team', 'Season'))
 }
