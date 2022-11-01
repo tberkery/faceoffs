@@ -91,6 +91,8 @@ connect_skaters_and_goaltending_to_team_performance = function() {
     mutate(Draft_Yr = replace_na(Draft_Yr, -1)) %>%
     mutate(Draft_Rd = replace_na(Draft_Rd, -1)) %>%
     mutate(Draft_Ov = replace_na(Draft_Ov, -1))
+  skaters_with_goaltending_and_teams = skaters_with_goaltending_and_teams %>%
+    scale_2020_volume_stats
   skaters_with_goaltending_and_teams %>% na.omit() %>% write_csv("nhl_player_seasons.csv")
   return(skaters_with_goaltending_and_teams)
 }
@@ -181,6 +183,17 @@ rename_cols = function(skaters_with_goaltending_and_teams) {
            Sh_Percent_team = `Sh%_team`,
            Sv_Percent_team = `Sv%_team`
     )
+  return(skaters_with_goaltending_and_teams)
+}
+
+scale_2020_volume_stats = function(skaters_with_goaltending_and_teams) {
+  skaters_with_goaltending_and_teams = skaters_with_goaltending_and_teams %>%
+    mutate(across(G:FOW, ~ifelse(Season == '20-21', .*82/56, .))) %>%
+    mutate(across(Ice_F:SPAR, ~ifelse(Season == '20-21', .*82/56, .))) %>%
+    mutate(across(GA:xGA, ~ifelse(Season == '20-21', .*82/56, .))) %>%
+    mutate(across(GSAA:SPAR_goaltending, ~ifelse(Season == '20-21', .*82/56, .))) %>%
+    mutate(across(W_team:Points_team, ~ifelse(Season == '20-21', .*82/56, .))) %>%
+    mutate(across(GF_team:G_Plus_Minus_team, ~ifelse(Season == '20-21', .*82/56, .)))
   return(skaters_with_goaltending_and_teams)
 }
 
