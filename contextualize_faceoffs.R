@@ -1,4 +1,3 @@
-setwd("~/Desktop/7th Semester/Faceoffs_Project")
 source("driver.R")
 library(dplyr)
 library(tidyr)
@@ -12,8 +11,6 @@ load_play_by_play = function(year) {
   pbp = read_csv(paste0("faceoff_analytics_", year, ".csv"))
   return(pbp)
 }
-
-pbp = load_play_by_play(2015)
 
 get_goalies_list = function(eh_goalies) {
   goalie_eh_ids = unique(eh_goalies$EH_ID)
@@ -53,7 +50,13 @@ condition_pbp_for_faceoffs = function(pbp) {
                                     lead(faceoff_losing_team_xG_since_faceoff, 1)),
            away_team_FA_xG = ifelse(event_team == away_team,
                                     lead(faceoff_winning_team_xG_since_faceoff, 1),
-                                    lead(faceoff_losing_team_xG_since_faceoff, 1))
+                                    lead(faceoff_losing_team_xG_since_faceoff, 1)),
+           faceoff_winning_team_xG_since_faceoff = ifelse(home_team == event_team,
+                                                          home_team_FA_xG,
+                                                          away_team_FA_xG),
+           faceoff_losing_team_xG_since_faceoff = ifelse(home_team != event_team,
+                                                          home_team_FA_xG,
+                                                          away_team_FA_xG)
     ) %>%
     filter(event_type == 'FAC') %>%
     mutate(winning_team_on_1 = ifelse(event_team == home_team, home_on_1, away_on_1)) %>%
