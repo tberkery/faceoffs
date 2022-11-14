@@ -12,6 +12,8 @@ load_play_by_play = function(year) {
   return(pbp)
 }
 
+pbp = load_play_by_play(2017)
+
 get_goalies_list = function(eh_goalies) {
   goalie_eh_ids = unique(eh_goalies$EH_ID)
   return(goalie_eh_ids)
@@ -55,8 +57,8 @@ condition_pbp_for_faceoffs = function(pbp) {
                                                           home_team_FA_xG,
                                                           away_team_FA_xG),
            faceoff_losing_team_xG_since_faceoff = ifelse(home_team != event_team,
-                                                          home_team_FA_xG,
-                                                          away_team_FA_xG)
+                                                         home_team_FA_xG,
+                                                         away_team_FA_xG)
     ) %>%
     filter(event_type == 'FAC') %>%
     mutate(winning_team_on_1 = ifelse(event_team == home_team, home_on_1, away_on_1)) %>%
@@ -221,7 +223,6 @@ parse_out_positions = function(pbp_subset) {
   pbp_subset_classified_with_gar$Win_Forward6 = ifelse(pbp_subset_classified_with_gar$winning_team_on_6_pos == 'F', pbp_subset_classified_with_gar$winning_team_on_6_GAR, NA)
   pbp_subset_classified_with_gar$Win_Forward7 = ifelse(pbp_subset_classified_with_gar$winning_team_on_7_pos == 'F', pbp_subset_classified_with_gar$winning_team_on_7_GAR, NA)
   
-  
   pbp_subset_classified_with_gar$Win_Defenseman1 = ifelse(pbp_subset_classified_with_gar$winning_team_on_1_pos == 'D', pbp_subset_classified_with_gar$winning_team_on_1_GAR, NA)
   pbp_subset_classified_with_gar$Win_Defenseman2 = ifelse(pbp_subset_classified_with_gar$winning_team_on_2_pos == 'D', pbp_subset_classified_with_gar$winning_team_on_2_GAR, NA)
   pbp_subset_classified_with_gar$Win_Defenseman3 = ifelse(pbp_subset_classified_with_gar$winning_team_on_3_pos == 'D', pbp_subset_classified_with_gar$winning_team_on_3_GAR, NA)
@@ -277,6 +278,38 @@ parse_out_positions = function(pbp_subset) {
   pbp_subset_classified_with_gar$Lose_Defenseman5_Name = ifelse(pbp_subset_classified_with_gar$losing_team_on_5_pos == 'D', pbp_subset_classified_with_gar$losing_team_on_5, NA)
   pbp_subset_classified_with_gar$Lose_Defenseman6_Name = ifelse(pbp_subset_classified_with_gar$losing_team_on_6_pos == 'D', pbp_subset_classified_with_gar$losing_team_on_6, NA)
   pbp_subset_classified_with_gar$Lose_Defenseman7_Name = ifelse(pbp_subset_classified_with_gar$losing_team_on_7_pos == 'D', pbp_subset_classified_with_gar$losing_team_on_7, NA)
+  
+  pbp_subset_classified_with_gar$Win_Goalie1 = ifelse(pbp_subset_classified_with_gar$winning_team_on_1_pos == 'G', pbp_subset_classified_with_gar$winning_team_on_1_GAR, NA)
+  pbp_subset_classified_with_gar$Win_Goalie2 = ifelse(pbp_subset_classified_with_gar$winning_team_on_2_pos == 'G', pbp_subset_classified_with_gar$winning_team_on_2_GAR, NA)
+  pbp_subset_classified_with_gar$Win_Goalie3 = ifelse(pbp_subset_classified_with_gar$winning_team_on_3_pos == 'G', pbp_subset_classified_with_gar$winning_team_on_3_GAR, NA)
+  pbp_subset_classified_with_gar$Win_Goalie4 = ifelse(pbp_subset_classified_with_gar$winning_team_on_4_pos == 'G', pbp_subset_classified_with_gar$winning_team_on_4_GAR, NA)
+  pbp_subset_classified_with_gar$Win_Goalie5 = ifelse(pbp_subset_classified_with_gar$winning_team_on_5_pos == 'G', pbp_subset_classified_with_gar$winning_team_on_5_GAR, NA)
+  pbp_subset_classified_with_gar$Win_Goalie6 = ifelse(pbp_subset_classified_with_gar$winning_team_on_6_pos == 'G', pbp_subset_classified_with_gar$winning_team_on_6_GAR, NA)
+  pbp_subset_classified_with_gar$Win_Goalie7 = ifelse(pbp_subset_classified_with_gar$winning_team_on_7_pos == 'G', pbp_subset_classified_with_gar$winning_team_on_7_GAR, NA)
+  
+  pbp_subset_classified_with_gar$Lose_Goalie1 = ifelse(pbp_subset_classified_with_gar$losing_team_on_1_pos == 'G', pbp_subset_classified_with_gar$losing_team_on_1_GAR, NA)
+  pbp_subset_classified_with_gar$Lose_Goalie2 = ifelse(pbp_subset_classified_with_gar$losing_team_on_2_pos == 'G', pbp_subset_classified_with_gar$losing_team_on_2_GAR, NA)
+  pbp_subset_classified_with_gar$Lose_Goalie3 = ifelse(pbp_subset_classified_with_gar$losing_team_on_3_pos == 'G', pbp_subset_classified_with_gar$losing_team_on_3_GAR, NA)
+  pbp_subset_classified_with_gar$Lose_Goalie4 = ifelse(pbp_subset_classified_with_gar$losing_team_on_4_pos == 'G', pbp_subset_classified_with_gar$losing_team_on_4_GAR, NA)
+  pbp_subset_classified_with_gar$Lose_Goalie5 = ifelse(pbp_subset_classified_with_gar$losing_team_on_5_pos == 'G', pbp_subset_classified_with_gar$losing_team_on_5_GAR, NA)
+  pbp_subset_classified_with_gar$Lose_Goalie6 = ifelse(pbp_subset_classified_with_gar$losing_team_on_6_pos == 'G', pbp_subset_classified_with_gar$losing_team_on_6_GAR, NA)
+  pbp_subset_classified_with_gar$Lose_Goalie7 = ifelse(pbp_subset_classified_with_gar$losing_team_on_7_pos == 'G', pbp_subset_classified_with_gar$losing_team_on_7_GAR, NA)
+  
+  pbp_subset_classified_with_gar$Win_Goalie1_Name = ifelse(pbp_subset_classified_with_gar$winning_team_on_1_pos == 'G', pbp_subset_classified_with_gar$winning_team_on_1, NA)
+  pbp_subset_classified_with_gar$Win_Goalie2_Name = ifelse(pbp_subset_classified_with_gar$winning_team_on_2_pos == 'G', pbp_subset_classified_with_gar$winning_team_on_2, NA)
+  pbp_subset_classified_with_gar$Win_Goalie3_Name = ifelse(pbp_subset_classified_with_gar$winning_team_on_3_pos == 'G', pbp_subset_classified_with_gar$winning_team_on_3, NA)
+  pbp_subset_classified_with_gar$Win_Goalie4_Name = ifelse(pbp_subset_classified_with_gar$winning_team_on_4_pos == 'G', pbp_subset_classified_with_gar$winning_team_on_4, NA)
+  pbp_subset_classified_with_gar$Win_Goalie5_Name = ifelse(pbp_subset_classified_with_gar$winning_team_on_5_pos == 'G', pbp_subset_classified_with_gar$winning_team_on_5, NA)
+  pbp_subset_classified_with_gar$Win_Goalie6_Name = ifelse(pbp_subset_classified_with_gar$winning_team_on_6_pos == 'G', pbp_subset_classified_with_gar$winning_team_on_6, NA)
+  pbp_subset_classified_with_gar$Win_Goalie7_Name = ifelse(pbp_subset_classified_with_gar$winning_team_on_7_pos == 'G', pbp_subset_classified_with_gar$winning_team_on_7, NA)
+  
+  pbp_subset_classified_with_gar$Lose_Goalie1_Name = ifelse(pbp_subset_classified_with_gar$losing_team_on_1_pos == 'G', pbp_subset_classified_with_gar$losing_team_on_1, NA)
+  pbp_subset_classified_with_gar$Lose_Goalie2_Name = ifelse(pbp_subset_classified_with_gar$losing_team_on_2_pos == 'G', pbp_subset_classified_with_gar$losing_team_on_2, NA)
+  pbp_subset_classified_with_gar$Lose_Goalie3_Name = ifelse(pbp_subset_classified_with_gar$losing_team_on_3_pos == 'G', pbp_subset_classified_with_gar$losing_team_on_3, NA)
+  pbp_subset_classified_with_gar$Lose_Goalie4_Name = ifelse(pbp_subset_classified_with_gar$losing_team_on_4_pos == 'G', pbp_subset_classified_with_gar$losing_team_on_4, NA)
+  pbp_subset_classified_with_gar$Lose_Goalie5_Name = ifelse(pbp_subset_classified_with_gar$losing_team_on_5_pos == 'G', pbp_subset_classified_with_gar$losing_team_on_5, NA)
+  pbp_subset_classified_with_gar$Lose_Goalie6_Name = ifelse(pbp_subset_classified_with_gar$losing_team_on_6_pos == 'G', pbp_subset_classified_with_gar$losing_team_on_6, NA)
+  pbp_subset_classified_with_gar$Lose_Goalie7_Name = ifelse(pbp_subset_classified_with_gar$losing_team_on_7_pos == 'G', pbp_subset_classified_with_gar$losing_team_on_7, NA)
   
   pbp_subset_classified_with_gar = pbp_subset_classified_with_gar %>%
     mutate(Win_F1 = NA,
@@ -334,7 +367,35 @@ parse_out_positions = function(pbp_subset) {
            Lose_D4_Name = NA,
            Lose_D5_Name = NA,
            Lose_D6_Name = NA,
-           Lose_D7_Name = NA
+           Lose_D7_Name = NA,
+           Win_G1 = NA,
+           Win_G2 = NA,
+           Win_G3 = NA,
+           Win_G4 = NA,
+           Win_G5 = NA,
+           Win_G6 = NA,
+           Win_G7 = NA,
+           Win_G1_Name = NA,
+           Win_G2_Name = NA,
+           Win_G3_Name = NA,
+           Win_G4_Name = NA,
+           Win_G5_Name = NA,
+           Win_G6_Name = NA,
+           Win_G7_Name = NA,
+           Lose_G1 = NA,
+           Lose_G2 = NA,
+           Lose_G3 = NA,
+           Lose_G4 = NA,
+           Lose_G5 = NA,
+           Lose_G6 = NA,
+           Lose_G7 = NA,
+           Lose_G1_Name = NA,
+           Lose_G2_Name = NA,
+           Lose_G3_Name = NA,
+           Lose_G4_Name = NA,
+           Lose_G5_Name = NA,
+           Lose_G6_Name = NA,
+           Lose_G7_Name = NA
            )
   
   for (row in 1:nrow(pbp_subset_classified_with_gar)) {
@@ -342,17 +403,23 @@ parse_out_positions = function(pbp_subset) {
     
     pbp_subset_classified_with_gar[row,] -> Temp
     
-    Temp[130:136] = as.list(as.numeric(Temp[74:80][order(-Temp[74:80])]))
-    Temp[137:143] = as.list(as.character(Temp[102:108][order(-Temp[74:80])]))
+    Temp[158:164] = as.list(as.numeric(Temp[74:80][order(-Temp[74:80])]))
+    Temp[165:171] = as.list(as.character(Temp[102:108][order(-Temp[74:80])]))
     
-    Temp[144:150] = as.list(as.numeric(Temp[81:87][order(-Temp[81:87])]))
-    Temp[151:157] = as.list(as.numeric(Temp[109:115][order(-Temp[81:87])]))
+    Temp[172:178] = as.list(as.numeric(Temp[81:87][order(-Temp[81:87])]))
+    Temp[179:185] = as.list(as.character(Temp[109:115][order(-Temp[81:87])]))
     
-    Temp[158:164] = as.list(as.numeric(Temp[88:94][order(-Temp[88:94])]))
-    Temp[165:171] = as.list(as.character(Temp[116:122][order(-Temp[88:94])]))
+    Temp[186:192] = as.list(as.numeric(Temp[88:94][order(-Temp[88:94])]))
+    Temp[193:199] = as.list(as.character(Temp[116:122][order(-Temp[88:94])]))
     
-    Temp[172:178] = as.list(as.numeric(Temp[95:101][order(-Temp[95:101])]))
-    Temp[179:185] = as.list(as.character(Temp[123:129][order(-Temp[95:101])]))
+    Temp[200:206] = as.list(as.numeric(Temp[95:101][order(-Temp[95:101])]))
+    Temp[207:213] = as.list(as.character(Temp[123:129][order(-Temp[95:101])]))
+    
+    Temp[214:220] = as.list(as.numeric(Temp[130:136][order(-Temp[130:136])]))
+    Temp[221:227] = as.list(as.character(Temp[144:150][order(-Temp[130:136])]))
+    
+    Temp[228:234] = as.list(as.numeric(Temp[137:143][order(-Temp[137:143])]))
+    Temp[235:241] = as.list(as.character(Temp[151:157][order(-Temp[137:143])]))
     
     
     if(row == 1){
@@ -378,3 +445,5 @@ parse_out_positions = function(pbp_subset) {
 }
 
 ps = parse_out_positions(pbp_subset)
+
+write_csv(ps, 'Full2017.csv')
