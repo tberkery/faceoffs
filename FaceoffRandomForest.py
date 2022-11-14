@@ -33,8 +33,8 @@ class FaceoffRandomForest:
         cols_of_interest.remove('faceoff_winning_team_xG_since_faceoff')
         # X = self.data.loc[:, self.data.columns != 'faceoff_winning_team_xG_since_faceoff']
         X = data_no_na[cols_of_interest]
-        y = np.random.randint(0, 10, size = len(data_no_na['faceoff_winning_team_xG_since_faceoff']))
-        #y = data_no_na['faceoff_winning_team_xG_since_faceoff']
+        #y = np.random.randint(0, 10, size = len(data_no_na['faceoff_winning_team_xG_since_faceoff']))
+        y = data_no_na['faceoff_winning_team_xG_since_faceoff']
         x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
         rf = RandomForestRegressor(n_estimators = 300, max_features = 'sqrt', max_depth = 5, random_state = 18).fit(x_train, y_train)
 
