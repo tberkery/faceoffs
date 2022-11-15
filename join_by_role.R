@@ -34,7 +34,7 @@ join_by_role = function() {
     left_join(EH_master, by = c('Win_D1_Name' = 'EH_ID', 'prior_season' = 'season'), suffix = c('', '_Win_D1'))
   pbp_with_context = pbp_with_context %>%
     left_join(EH_master, by = c('Win_D2_Name' = 'EH_ID', 'prior_season' = 'season'), suffix = c('', '_Win_D2'))
-  pbp_with_context = pbp_with_context %>%
+   pbp_with_context = pbp_with_context %>%
     left_join(EH_master, by = c('Win_G1_Name' = 'EH_ID', 'prior_season' = 'season'), suffix = c('', '_Win_G1'))
   pbp_with_context = pbp_with_context %>%
     left_join(EH_master, by = c('Lose_F1_Name' = 'EH_ID', 'prior_season' = 'season'), suffix = c('', '_Lose_F1'))
