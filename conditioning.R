@@ -6,6 +6,7 @@ condition = function() {
   data = condition_types(initial_data)
   data = address_na(data)
   return(data)
+
 }
 
 condition_types = function(data) {
@@ -41,8 +42,8 @@ address_na = function(data) {
               starts_with('API ID')))
   print(nrow(data_conditioned))
   data_filtered = data_conditioned %>%
-    filter(!is.na(Team_Win_F1), !is.na(Team_Win_F2), !is.na(Team_Win_F3), !is.na(Team_Win_D1), !is.na(Team_Win_D2), !is.na(Team_Win_G1),
-           !is.na(Team_Lose_F1), !is.na(Team_Lose_F2), !is.na(Team_Lose_F3), !is.na(Team_Lose_D1), !is.na(Team_Lose_D2), !is.na(Team_Lose_G1))
+    filter(!is.na(Win_F1) & !is.na(Win_F2) & !is.na(Win_F3) & !is.na(Win_D1)& !is.na(Win_D2)& !is.na(Win_G1)&
+             !is.na(Lose_F1) & !is.na(Lose_F2)& !is.na(Lose_F3)& !is.na(Lose_D1)& !is.na(Lose_D2)& !is.na(Lose_G1))
   print(nrow(data_filtered))
   return(data_conditioned)
 }
