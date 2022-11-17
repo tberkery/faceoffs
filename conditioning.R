@@ -33,7 +33,7 @@ address_na = function(data) {
               event_player_2, starts_with('home_on'), home_goalie, starts_with('away_on'), 
               faceoff_winner, home_team_FA_xG, away_team_FA_xG,
               starts_with('winning_team_on'), starts_with('losing_team_on'),
-              starts_with('Win_Goalie'), starts_with('Lose_Goalie'), ends_with('_Name'),
+              starts_with('Win_Goalie'), starts_with('Lose_Goalie'),
               contains('F4'), contains('F5'), contains('F6'), contains('F7'),
               contains('D3'), contains('D4'), contains('D5'), contains('D6'),
               contains('D7'), contains('G2'), contains('G3'), contains('G4'), 
@@ -42,8 +42,20 @@ address_na = function(data) {
               starts_with('API ID')))
   print(nrow(data_conditioned))
   data_filtered = data_conditioned %>%
-    filter(!is.na(Win_F1) & !is.na(Win_F2) & !is.na(Win_F3) & !is.na(Win_D1)& !is.na(Win_D2)& !is.na(Win_G1)&
-             !is.na(Lose_F1) & !is.na(Lose_F2)& !is.na(Lose_F3)& !is.na(Lose_D1)& !is.na(Lose_D2)& !is.na(Lose_G1))
+    filter(!is.na(Team_Win_F1) & !is.na(Team_Win_F2) & !is.na(Team_Win_F3) & !is.na(Team_Win_D1)& !is.na(Team_Win_D2)& !is.na(Team_Win_G1)&
+             !is.na(Team_Lose_F1) & !is.na(Team_Lose_F2)& !is.na(Team_Lose_F3)& !is.na(Team_Lose_D1)& !is.na(Team_Lose_D2)& !is.na(Team_Lose_G1))
   print(nrow(data_filtered))
-  return(data_conditioned)
+  return(data_filtered)
+}
+
+view_sources_of_NA = function(data) {
+  subset = data %>% filter(season == year)
+  na_players = unique(data$Win_F1_Name)
+  na_players = c(na_players, unique(data$Win_F2_Name))
+  na_players = c(na_players, unique(data$Win_F3_Name))
+  na_players = c(na_players, unique(data$Win_D1_Name))
+  na_players = c(na_players, unique(data$Win_D2_Name))
+  na_players = unique(na_players)
+  print(na_players)
+  print(length(na_players))
 }
