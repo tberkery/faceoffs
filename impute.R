@@ -2,35 +2,30 @@ library(mice)
 library(tidyverse)
 library(doParallel)
 library(foreach)
-
-role_index = 1
-roles = c("F1", "F2", "F3", "D1", "D2", "G1")
-counter = 1
+library(itertools)
 
 prep_impute = function(data) {
-  
-  impute = function(data) {
-    data_imputed = mice::mice(data = data, meth = 'cart', seed = 500)
-    imputed_1 = complete(data_imputed, 1) %>% saveRDS("imputed_data_", paste0(roles[role_index], "_", counter, ".rds"))
-    counter = counter + 1
-    imputed_2 = complete(data_imputed, 2) %>% saveRDS("imputed_data_", paste0(roles[role_index], "_", counter, ".rds"))
-    counter = counter + 1
-    imputed_3 = complete(data_imputed, 3) %>% saveRDS("imputed_data_", paste0(roles[role_index], "_", counter, ".rds"))
-    counter = counter + 1
-    imputed_4 = complete(data_imputed, 4) %>% saveRDS("imputed_data_", paste0(roles[role_index], "_", counter, ".rds"))
-    counter = counter + 1
-    imputed_5 = complete(data_imputed, 5) %>% saveRDS("imputed_data_", paste0(roles[role_index], "_", counter, ".rds"))
-    counter = counter + 1
-    role_index = role_index + 1
-    return(c(imputed_1, imputed_2, imputed_3, imputed_4, imputed_5))
+  data = data %>% select(contains("F1") |
+                        contains("F2") |
+                        contains("F3") |
+                        contains("D1") |
+                        contains("D2") |
+                        contains("G1"))
+  impute = function(sub) {
+    counter = 1
+    print(colnames(sub))
+    print(paste0("started running impute"))
+    data_imputed = mice::mice(data = sub, meth = 'cart', maxit = 1, seed = 500)
+    print(paste0("finished running impute"))
+    return(complete(data_imputed, 1))
   }
 
-  data_f1 = data %>% select(where(is.numeric) & contains('F1')) %>% head(100)
-  data_f2 = data %>% select(where(is.numeric) & contains('F2')) %>% head(100)
-  data_f3 = data %>% select(where(is.numeric) & contains('F3')) %>% head(100)
-  data_d1 = data %>% select(where(is.numeric) & contains('D1')) %>% head(100)
-  data_d2 = data %>% select(where(is.numeric) & contains('D2')) %>% head(100)
-  data_g1 = data %>% select(where(is.numeric) & contains('G1')) %>% head(100)
+  # data_f1 = data %>% select(where(is.numeric) & contains('F1')) %>% head(100)
+  # data_f2 = data %>% select(where(is.numeric) & contains('F2')) %>% head(100)
+  # data_f3 = data %>% select(where(is.numeric) & contains('F3')) %>% head(100)
+  # data_d1 = data %>% select(where(is.numeric) & contains('D1')) %>% head(100)
+  # data_d2 = data %>% select(where(is.numeric) & contains('D2')) %>% head(100)
+  # data_g1 = data %>% select(where(is.numeric) & contains('G1')) %>% head(100)
   
   print("role-based sub-data-sets created")
   
@@ -38,12 +33,13 @@ prep_impute = function(data) {
   print("num cores is")
   print(no_cores)
   
-  registerDoParallel(makeCluster(no_cores), outfile = "debug_file.txt")
+  registerDoParallel(makeCluster(no_cores))
   
   print("cluster registration complete")
   
-  foreach(data_set = c(data_f1, data_f2, data_f3, data_d1, data_d2, data_g1),
-          .combine = cbind) %dopar% impute(data_set)
+  foreach(m = isplitCols(data, chunks = 6),
+          .combine = 'cbind',
+          .packages = 'mice') %dopar% impute(m)
   
   print("for each execution complete")
 }
