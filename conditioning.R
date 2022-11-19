@@ -1,9 +1,25 @@
 library(tidyverse)
 source("join_by_role.R")
+source("impute.R")
 
 condition = function() {
   initial_data = join_by_role()
-  data = condition_types(initial_data)
+  data = condition_types(initial_data) %>%
+    select(-contains('API ID'), -contains('_team'), -contains('_goaltending'),
+           -contains('7'), -contains('_Name')) %>%
+    rename(Sh_Percent_Win_F1 = `Sh%_Win_F1`,
+           Sh_Percent_Win_F2 = `Sh%_Win_F2`,
+           Sh_Percent_Win_F3 = `Sh%_Win_F3`,
+           Sh_Percent_Win_D1 = `Sh%_Win_D1`,
+           Sh_Percent_Win_D2 = `Sh%_Win_D1`,
+           Sh_Percent_Win_G1 = `Sh%_Win_G1`,
+           Sh_Percent_Lose_F1 = `Sh%_Lose_F1`,
+           Sh_Percent_Lose_F2 = `Sh%_Lose_F2`,
+           Sh_Percent_Lose_F3 = `Sh%_Lose_F3`,
+           Sh_Percent_Lose_D1 = `Sh%_Lose_D1`,
+           Sh_Percent_Lose_D2 = `Sh%_Lose_D1`,
+           Sh_Percent_Lose_G1 = `Sh%_Lose_G1`)
+  data = prep_impute(data)
   data = address_na(data)
   return(data)
 
@@ -45,7 +61,7 @@ address_na = function(data) {
     filter(!is.na(Team_Win_F1) & !is.na(Team_Win_F2) & !is.na(Team_Win_F3) & !is.na(Team_Win_D1)& !is.na(Team_Win_D2)& !is.na(Team_Win_G1)&
              !is.na(Team_Lose_F1) & !is.na(Team_Lose_F2)& !is.na(Team_Lose_F3)& !is.na(Team_Lose_D1)& !is.na(Team_Lose_D2)& !is.na(Team_Lose_G1))
   print(nrow(data_filtered))
-  return(data_filtered)
+  return(data_conditioned)
 }
 
 view_sources_of_NA = function(data) {
