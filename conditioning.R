@@ -12,14 +12,15 @@ condition = function() {
            Sh_Percent_Win_F3 = `Sh%_Win_F3`,
            Sh_Percent_Win_D1 = `Sh%_Win_D1`,
            Sh_Percent_Win_D2 = `Sh%_Win_D1`,
-           Sh_Percent_Win_G1 = `Sh%_Win_G1`,
+           Sh_Percent_Win_G1 = `Sh%_Win_G1`
+           ,
            Sh_Percent_Lose_F1 = `Sh%_Lose_F1`,
            Sh_Percent_Lose_F2 = `Sh%_Lose_F2`,
            Sh_Percent_Lose_F3 = `Sh%_Lose_F3`,
            Sh_Percent_Lose_D1 = `Sh%_Lose_D1`,
            Sh_Percent_Lose_D2 = `Sh%_Lose_D1`,
            Sh_Percent_Lose_G1 = `Sh%_Lose_G1`)
-  data = prep_impute(data)
+  data = impute_mice(data)
   data = address_na(data)
   return(data)
 

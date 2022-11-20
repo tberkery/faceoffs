@@ -4,7 +4,7 @@ library(doParallel)
 library(foreach)
 library(itertools)
 
-impute_theoretical = function(data) {
+impute_mice = function(data) {
   data_f1_win = data %>% select(where(is.numeric) & contains('Win_F1'))
   data_f2_win = data %>% select(where(is.numeric) & contains('Win_F2'))
   data_f3_win = data %>% select(where(is.numeric) & contains('Win_F3'))
@@ -12,17 +12,28 @@ impute_theoretical = function(data) {
   data_d2_win = data %>% select(where(is.numeric) & contains('Win_D2'))
   data_g1_win = data %>% select(where(is.numeric) & contains('Win_G1'))
   data_f1_win_mice = mice(data_f1_win, method = "cart", m = 1, maxit = 1)
-  data_f2_win_mice = mice(data_f2_win, method = "cart", m = 1, maxit = 1)
-  data_f3_win_mice = mice(data_f3_win, method = "cart", m = 1, maxit = 1)
-  data_d1_win_mice = mice(data_d1_win, method = "cart", m = 1, maxit = 1)
-  data_d2_win_mice = mice(data_d2_win, method = "cart", m = 1, maxit = 1)
-  data_g1_win_mice = mice(data_g1_win, method = "cart", m = 1, maxit = 1)
   data_f1_win_imputed = complete(data_f1_win_mice, 1)
+  data_f1_win_imputed %>% write_csv("data_f1_win_imputed.csv")
+  
+  data_f2_win_mice = mice(data_f2_win, method = "cart", m = 1, maxit = 1)
   data_f2_win_imputed = complete(data_f2_win_mice, 1)
+  data_f2_win_imputed %>% write_csv("data_f2_win_imputed.csv")
+  
+  data_f3_win_mice = mice(data_f3_win, method = "cart", m = 1, maxit = 1)
   data_f3_win_imputed = complete(data_f3_win_mice, 1)
+  data_f3_win_imputed %>% write_csv("data_f3_win_imputed.csv")
+  
+  data_d1_win_mice = mice(data_d1_win, method = "cart", m = 1, maxit = 1)
   data_d1_win_imputed = complete(data_d1_win_mice, 1)
+  data_d1_win_imputed %>% write_csv("data_d1_win_imputed.csv")
+  
+  data_d2_win_mice = mice(data_d2_win, method = "cart", m = 1, maxit = 1)
   data_d2_win_imputed = complete(data_d2_win_mice, 1)
+  data_d2_win_imputed %>% write_csv("data_d2_win_imputed.csv")
+  
+  data_g1_win_mice = mice(data_g1_win, method = "cart", m = 1, maxit = 1)
   data_g1_win_imputed = complete(data_g1_win_mice, 1)
+  data_g1_win_imputed %>% write_csv("data_g1_win_imputed.csv")
   
   data_f1_lose = data %>% select(where(is.numeric) & contains('Lose_F1'))
   data_f2_lose = data %>% select(where(is.numeric) & contains('Lose_F2'))
@@ -30,18 +41,30 @@ impute_theoretical = function(data) {
   data_d1_lose = data %>% select(where(is.numeric) & contains('Lose_D1')) 
   data_d2_lose = data %>% select(where(is.numeric) & contains('Lose_D2'))
   data_g1_lose = data %>% select(where(is.numeric) & contains('Lose_G1'))
+  
   data_f1_lose_mice = mice(data_f1_lose, method = "cart", m = 1, maxit = 1)
-  data_f2_lose_mice = mice(data_f2_lose, method = "cart", m = 1, maxit = 1)
-  data_f3_lose_mice = mice(data_f3_lose, method = "cart", m = 1, maxit = 1)
-  data_d1_lose_mice = mice(data_d1_lose, method = "cart", m = 1, maxit = 1)
-  data_d2_lose_mice = mice(data_d2_lose, method = "cart", m = 1, maxit = 1)
-  data_g1_lose_mice = mice(data_g1_lose, method = "cart", m = 1, maxit = 1)
   data_f1_lose_imputed = complete(data_f1_lose_mice, 1)
+  data_f1_lose_imputed %>% write_csv("data_f1_lose_imputed.csv")
+  
+  data_f2_lose_mice = mice(data_f2_lose, method = "cart", m = 1, maxit = 1)
   data_f2_lose_imputed = complete(data_f2_lose_mice, 1)
+  data_f2_lose_imputed %>% write_csv("data_f2_lose_imputed.csv")
+  
+  data_f3_lose_mice = mice(data_f3_lose, method = "cart", m = 1, maxit = 1)
   data_f3_lose_imputed = complete(data_f3_lose_mice, 1)
+  data_f3_lose_imputed %>% write_csv("data_f3_lose_imputed.csv")
+  
+  data_d1_lose_mice = mice(data_d1_lose, method = "cart", m = 1, maxit = 1)
   data_d1_lose_imputed = complete(data_d1_lose_mice, 1)
+  data_d1_lose_imputed %>% write_csv("data_d1_lose_imputed.csv")
+  
+  data_d2_lose_mice = mice(data_d2_lose, method = "cart", m = 1, maxit = 1)
   data_d2_lose_imputed = complete(data_d2_lose_mice, 1)
+  data_d2_lose_imputed %>% write_csv("data_d2_lose_imputed.csv")
+  
+  data_g1_lose_mice = mice(data_g1_lose, method = "cart", m = 1, maxit = 1)
   data_g1_lose_imputed = complete(data_g1_lose_mice, 1)
+  data_g1_lose_imputed %>% write_csv("data_g1_lose_imputed.csv")
 }
 
 
