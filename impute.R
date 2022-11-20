@@ -4,7 +4,48 @@ library(doParallel)
 library(foreach)
 library(itertools)
 
-prep_impute = function(data) {
+impute_theoretical = function(data) {
+  data_f1_win = data %>% select(where(is.numeric) & contains('Win_F1'))
+  data_f2_win = data %>% select(where(is.numeric) & contains('Win_F2'))
+  data_f3_win = data %>% select(where(is.numeric) & contains('Win_F3'))
+  data_d1_win = data %>% select(where(is.numeric) & contains('Win_D1')) 
+  data_d2_win = data %>% select(where(is.numeric) & contains('Win_D2'))
+  data_g1_win = data %>% select(where(is.numeric) & contains('Win_G1'))
+  data_f1_win_mice = mice(data_f1_win, method = "cart", m = 1, maxit = 1)
+  data_f2_win_mice = mice(data_f2_win, method = "cart", m = 1, maxit = 1)
+  data_f3_win_mice = mice(data_f3_win, method = "cart", m = 1, maxit = 1)
+  data_d1_win_mice = mice(data_d1_win, method = "cart", m = 1, maxit = 1)
+  data_d2_win_mice = mice(data_d2_win, method = "cart", m = 1, maxit = 1)
+  data_g1_win_mice = mice(data_g1_win, method = "cart", m = 1, maxit = 1)
+  data_f1_win_imputed = complete(data_f1_win_mice, 1)
+  data_f2_win_imputed = complete(data_f2_win_mice, 1)
+  data_f3_win_imputed = complete(data_f3_win_mice, 1)
+  data_d1_win_imputed = complete(data_d1_win_mice, 1)
+  data_d2_win_imputed = complete(data_d2_win_mice, 1)
+  data_g1_win_imputed = complete(data_g1_win_mice, 1)
+  
+  data_f1_lose = data %>% select(where(is.numeric) & contains('Lose_F1'))
+  data_f2_lose = data %>% select(where(is.numeric) & contains('Lose_F2'))
+  data_f3_lose = data %>% select(where(is.numeric) & contains('Lose_F3'))
+  data_d1_lose = data %>% select(where(is.numeric) & contains('Lose_D1')) 
+  data_d2_lose = data %>% select(where(is.numeric) & contains('Lose_D2'))
+  data_g1_lose = data %>% select(where(is.numeric) & contains('Lose_G1'))
+  data_f1_lose_mice = mice(data_f1_lose, method = "cart", m = 1, maxit = 1)
+  data_f2_lose_mice = mice(data_f2_lose, method = "cart", m = 1, maxit = 1)
+  data_f3_lose_mice = mice(data_f3_lose, method = "cart", m = 1, maxit = 1)
+  data_d1_lose_mice = mice(data_d1_lose, method = "cart", m = 1, maxit = 1)
+  data_d2_lose_mice = mice(data_d2_lose, method = "cart", m = 1, maxit = 1)
+  data_g1_lose_mice = mice(data_g1_lose, method = "cart", m = 1, maxit = 1)
+  data_f1_lose_imputed = complete(data_f1_lose_mice, 1)
+  data_f2_lose_imputed = complete(data_f2_lose_mice, 1)
+  data_f3_lose_imputed = complete(data_f3_lose_mice, 1)
+  data_d1_lose_imputed = complete(data_d1_lose_mice, 1)
+  data_d2_lose_imputed = complete(data_d2_lose_mice, 1)
+  data_g1_lose_imputed = complete(data_g1_lose_mice, 1)
+}
+
+
+prep_impute_mice = function(data) {
   data = data %>% select(contains("F1") |
                         contains("F2") |
                         contains("F3") |
@@ -20,12 +61,7 @@ prep_impute = function(data) {
     return(complete(data_imputed, 1))
   }
 
-  # data_f1 = data %>% select(where(is.numeric) & contains('F1')) %>% head(100)
-  # data_f2 = data %>% select(where(is.numeric) & contains('F2')) %>% head(100)
-  # data_f3 = data %>% select(where(is.numeric) & contains('F3')) %>% head(100)
-  # data_d1 = data %>% select(where(is.numeric) & contains('D1')) %>% head(100)
-  # data_d2 = data %>% select(where(is.numeric) & contains('D2')) %>% head(100)
-  # data_g1 = data %>% select(where(is.numeric) & contains('G1')) %>% head(100)
+  
   
   print("role-based sub-data-sets created")
   
