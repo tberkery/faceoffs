@@ -4,6 +4,8 @@ library(doParallel)
 library(foreach)
 library(itertools)
 
+# still tinkering with desired imputation strategy (if any)
+
 impute_mice = function(data) {
   data_f1_win = data %>% select(where(is.numeric) & contains('Win_F1'))
   data_f2_win = data %>% select(where(is.numeric) & contains('Win_F2'))
