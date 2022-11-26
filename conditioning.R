@@ -2,6 +2,8 @@ library(tidyverse)
 source("join_by_role.R")
 source("impute.R")
 
+# eliminating some less necessary fields
+
 condition = function() {
   initial_data = join_by_role()
   data = condition_types(initial_data) %>%
