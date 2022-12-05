@@ -14,18 +14,83 @@ condition = function() {
            Sh_Percent_Win_F3 = `Sh%_Win_F3`,
            Sh_Percent_Win_D1 = `Sh%_Win_D1`,
            Sh_Percent_Win_D2 = `Sh%_Win_D1`,
-           Sh_Percent_Win_G1 = `Sh%_Win_G1`
-           ,
+           Sh_Percent_Win_G1 = `Sh%_Win_G1`,
            Sh_Percent_Lose_F1 = `Sh%_Lose_F1`,
            Sh_Percent_Lose_F2 = `Sh%_Lose_F2`,
            Sh_Percent_Lose_F3 = `Sh%_Lose_F3`,
            Sh_Percent_Lose_D1 = `Sh%_Lose_D1`,
            Sh_Percent_Lose_D2 = `Sh%_Lose_D1`,
            Sh_Percent_Lose_G1 = `Sh%_Lose_G1`)
-  data = impute_mice(data)
-  data = address_na(data)
+  
+  eh_team_summary = compute_team_performance_by_season()
+  data_with_teams = data %>%
+    inner_join(eh_team_summary, by = c('Season', 'faceoff_winner' = 'Team')) %>%
+    inner_join(eh_team_summary, by = c('Season', 'faceoff_loser' = 'Team'), suffix = c('_winner', '_loser'))
+  data = data %>% remove_cols() %>% condition_cols()
+  data_imputed = impute_10th_percentile(data)
+  data_imputed = data_imputed %>% drop_na()
+  # data = impute_mice(data)
+  # data = address_na(data)
   return(data)
 
+}
+
+remove_cols = function(data) {
+  data = data %>% select(-c(
+    starts_with('Win_Goalie'),
+    starts_with('Lose_Goalie'),
+    starts_with('Win_F4'),
+    starts_with('Win_F5'),
+    starts_with('Win_F6'),
+    starts_with('Win_D3'),
+    starts_with('Win_D4'),
+    starts_with('Win_D5'),
+    starts_with('Win_D6'),
+    starts_with('Win_G1'),
+    starts_with('Win_G2'),
+    starts_with('Win_G3'),
+    starts_with('Win_G4'),
+    starts_with('Win_G5'),
+    starts_with('Win_G6'),
+    starts_with('Lose_F4'),
+    starts_with('Lose_F5'),
+    starts_with('Lose_F6'),
+    starts_with('Lose_D3'),
+    starts_with('Lose_D4'),
+    starts_with('Lose_D5'),
+    starts_with('Lose_D6'),
+    starts_with('Lose_G1'),
+    starts_with('Lose_G2'),
+    starts_with('Lose_G3'),
+    starts_with('Lose_G4'),
+    starts_with('Lose_G5'),
+    starts_with('Lose_G6'),
+    starts_with('API_ID_'),
+    starts_with('Season_'),
+    starts_with('Team_'),
+    starts_with('Draft_Yr_'),
+    starts_with('Draft_Ov_'),
+    starts_with('GA_') & !contains('on_ice'),
+    starts_with('SA_') & !contains('on_ice'),
+    starts_with('FA_') & !contains('on_ice'),
+    starts_with('xGA_') & !contains('on_ice'),
+    starts_with('FSv_Percent_'),
+    starts_with('xFSv_Percent_'),
+    starts_with('dFSv_Percent_'),
+    starts_with('GSAA_'),
+    starts_with('GSAx_'),
+    starts_with('Player'),
+    starts_with('Position_'),
+    starts_with('Shoots_'),
+    contains('G1')
+  ))
+  return(data)
+}
+
+condition_cols = function(data) {
+  data = data %>%
+    rename(eh_season = Season)
+  return(data)
 }
 
 condition_types = function(data) {
