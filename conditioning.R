@@ -7,7 +7,7 @@ source("impute.R")
 condition = function() {
   initial_data = join_by_role()
   data = condition_types(initial_data) %>%
-    select(-contains('API ID'), -contains('_team'), -contains('_goaltending'),
+    select(-contains('API ID'), -(contains('_team') & !contains('faceoff')), -contains('_goaltending'),
            -contains('7'), -contains('_Name')) %>%
     rename(Sh_Percent_Win_F1 = `Sh%_Win_F1`,
            Sh_Percent_Win_F2 = `Sh%_Win_F2`,

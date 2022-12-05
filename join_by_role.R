@@ -21,7 +21,7 @@ read_conditioned_pbp = function(start_year, end_year) {
 
 join_by_role = function() {
   EH_master = read_EH_master()
-  pbp_conditioned = read_conditioned_pbp(2016, 2019) %>% 
+  pbp_conditioned = read_conditioned_pbp(2012, 2019) %>% 
     filter(!is.na(away_on_6)) %>% 
     filter(!is.na(home_on_6)) 
   # filter to 5-on-5 game play only
