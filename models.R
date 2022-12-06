@@ -6,15 +6,29 @@ library(parsnip)
 source("conditioning.R")
 
 implement_pca = function(data_imputed) {
-  data_imputed_subset = data_imputed %>% head(n = 10000)
-  data_pca = psych::principal(r = data_imputed_subset %>% select(where(is.numeric)), nfactor = 10)
+  data_imputed_old = data_imputed
+  data_imputed = data_imputed %>% select(-c(season, prior_season)) %>% select(1:50)
+  non_numeric_data_cols = colnames(data_imputed %>% select(!where(is.numeric)))
+  num_non_numeric_cols = length(non_numeric_data_cols)
+  data_imputed_subset = data_imputed %>% select(all_of(non_numeric_data_cols), all_of(as.vector(setdiff(colnames(data_imputed), non_numeric_data_cols)))) %>% head(n = 10000)
+  data_pca = psych::principal(r = data_imputed_subset[num_non_numeric_cols:length(colnames(data_imputed))] %>% select(where(is.numeric)), nfactor = 10)
   summary(data_pca)
+  return(data_pca)
+}
+
+pca = function(data_imputed) {
+  data_imputed = data_imputed %>% select(-c(season, prior_season))
+  non_numeric_data_cols = colnames(data_imputed %>% select(!where(is.numeric)))
+  num_non_numeric_cols = length(non_numeric_data_cols)
+  data_imputed_subset = data_imputed %>% select(all_of(non_numeric_data_cols), all_of(as.vector(setdiff(colnames(data_imputed), non_numeric_data_cols)))) %>% head(n = 10000)
+  pca_res = prcomp(data_imputed_subset[num_non_numeric_cols:length(colnames(data_imputed))] %>% select(where(is.numeric)), center = TRUE, scale = TRUE)
+  data_pca = as.data.frame(pca_res$x)
   return(data_pca)
 }
 
 rand_forest = function() {
   data_imputed = condition()
-  
+  data_pca = pca(data_imputed)
   set.seed(123)
   
   data_imputed_subset = data_imputed %>% select(-event_type, -eh_season) %>% head(10000)
