@@ -1,6 +1,7 @@
 library(tidyverse)
 source("join_by_role.R")
 source("impute.R")
+source("driver.R")
 
 # eliminating some less necessary fields
 
@@ -29,9 +30,7 @@ condition = function() {
   data = data %>% remove_cols() %>% condition_cols()
   data_imputed = impute_10th_percentile(data)
   data_imputed = data_imputed %>% drop_na()
-  # data = impute_mice(data)
-  # data = address_na(data)
-  return(data)
+  return(data_imputed)
 
 }
 
