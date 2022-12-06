@@ -3,6 +3,8 @@ library(tidyverse)
 library(tidymodels)
 library(parsnip)
 
+source("conditioning.R")
+
 implement_pca = function(data_imputed) {
   data_imputed_subset = data_imputed %>% head(n = 10000)
   data_pca = psych::principal(r = data_imputed_subset %>% select(where(is.numeric)), nfactor = 10)
@@ -10,17 +12,19 @@ implement_pca = function(data_imputed) {
   return(data_pca)
 }
 
-rand_forest = function(data_pca) {
+rand_forest = function() {
+  data_imputed = condition()
+  
   set.seed(123)
   
-  data_imputed_subset = data_imputed %>% select(-event_type, -eh_season) %>% head(n = 10000)
+  data_imputed_subset = data_imputed %>% select(-event_type, -eh_season) %>% head(10000)
   
   faceoffs_split <- initial_split(data_imputed_subset)
   faceoffs_train <- training(faceoffs_split)
   faceoffs_test <- testing(faceoffs_split)
   
-  faceoffs_rec <- recipe(faceoff_winning_team_xG_since_faceoff ~ ., data = faceoffs_train) %>%
-    step_dummy(all_nominal(), -all_outcomes(), one_hot = TRUE)
+  faceoffs_rec <- recipe(faceoff_winning_team_xG_since_faceoff ~ ., data = faceoffs_train) #%>%
+    #step_dummy(all_nominal(), -all_outcomes(), one_hot = TRUE)
     
   faceoffs_prep <- prep(faceoffs_rec)
   juiced <- juice(faceoffs_prep)
@@ -45,13 +49,13 @@ rand_forest = function(data_pca) {
   print("num cores is")
   print(no_cores)
   
-  registerDoParallel(16) #makeCluster(no_cores))
+  registerDoParallel(32) #makeCluster(no_cores))
   
   set.seed(345)
   tune_res <- tune_grid(
     tune_wf,
     resamples = faceoffs_folds,
-    grid = 6
+    grid = 20
   )
   
   tune_res
