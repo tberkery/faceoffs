@@ -6,20 +6,19 @@ library(itertools)
 
 impute_10th_percentile = function(data) {
   data_imputed = data %>%
-    mutate(Draft_Rd_Win_F1 = replace_na(Draft_Rd_Win_F1, 32 * 7 + 1)) %>%
-    mutate(Draft_Rd_Win_F2 = replace_na(Draft_Rd_Win_F2, 32 * 7 + 1)) %>%
-    mutate(Draft_Rd_Win_F3 = replace_na(Draft_Rd_Win_F3, 32 * 7 + 1)) %>%
-    mutate(Draft_Rd_Win_D1 = replace_na(Draft_Rd_Win_D1, 32 * 7 + 1)) %>%
-    mutate(Draft_Rd_Win_D2 = replace_na(Draft_Rd_Win_D2, 32 * 7 + 1)) %>%
-    mutate(Draft_Rd_Lose_F1 = replace_na(Draft_Rd_Lose_F1, 32 * 7 + 1)) %>%
-    mutate(Draft_Rd_Lose_F2 = replace_na(Draft_Rd_Lose_F2, 32 * 7 + 1)) %>%
-    mutate(Draft_Rd_Lose_F3 = replace_na(Draft_Rd_Lose_F3, 32 * 7 + 1)) %>%
-    mutate(Draft_Rd_Lose_D1 = replace_na(Draft_Rd_Lose_D1, 32 * 7 + 1)) %>%
-    mutate(Draft_Rd_Lose_D2 = replace_na(Draft_Rd_Lose_D2, 32 * 7 + 1)) %>%
-    mutate(across(where(is.numeric), ~replace_na(., quantile(., 0.1, na.rm = TRUE))))
+    mutate(Draft_Rd_Win_F1 = replace_na(Draft_Rd_Win_F1, 32 * 7 + 1 + rnorm(1, mean = mean(Draft_Rd_Win_F1, na.rm = TRUE), sd = sd(Draft_Rd_Win_F1, na.rm = TRUE)))) %>%
+    mutate(Draft_Rd_Win_F2 = replace_na(Draft_Rd_Win_F2, 32 * 7 + 1 + rnorm(1, mean = mean(Draft_Rd_Win_F2, na.rm = TRUE), sd = sd(Draft_Rd_Win_F2, na.rm = TRUE)))) %>%
+    mutate(Draft_Rd_Win_F3 = replace_na(Draft_Rd_Win_F3, 32 * 7 + 1 + rnorm(1, mean = mean(Draft_Rd_Win_F3, na.rm = TRUE), sd = sd(Draft_Rd_Win_F3, na.rm = TRUE)))) %>%
+    mutate(Draft_Rd_Win_D1 = replace_na(Draft_Rd_Win_D1, 32 * 7 + 1 + rnorm(1, mean = mean(Draft_Rd_Win_D1, na.rm = TRUE), sd = sd(Draft_Rd_Win_D1, na.rm = TRUE)))) %>%
+    mutate(Draft_Rd_Win_D2 = replace_na(Draft_Rd_Win_D2, 32 * 7 + 1 + rnorm(1, mean = mean(Draft_Rd_Win_D2, na.rm = TRUE), sd = sd(Draft_Rd_Win_D1, na.rm = TRUE)))) %>%
+    mutate(Draft_Rd_Lose_F1 = replace_na(Draft_Rd_Lose_F1, 32 * 7 + 1 + rnorm(1, mean = mean(Draft_Rd_Lose_F1, na.rm = TRUE), sd = sd(Draft_Rd_Lose_F1, na.rm = TRUE)))) %>%
+    mutate(Draft_Rd_Lose_F2 = replace_na(Draft_Rd_Lose_F2, 32 * 7 + 1 + rnorm(1, mean = mean(Draft_Rd_Lose_F2, na.rm = TRUE), sd = sd(Draft_Rd_Lose_F2, na.rm = TRUE)))) %>%
+    mutate(Draft_Rd_Lose_F3 = replace_na(Draft_Rd_Lose_F3, 32 * 7 + 1 + rnorm(1, mean = mean(Draft_Rd_Lose_F3, na.rm = TRUE), sd = sd(Draft_Rd_Lose_F3, na.rm = TRUE)))) %>%
+    mutate(Draft_Rd_Lose_D1 = replace_na(Draft_Rd_Lose_D1, 32 * 7 + 1 + rnorm(1, mean = mean(Draft_Rd_Lose_D1, na.rm = TRUE), sd = sd(Draft_Rd_Lose_D1, na.rm = TRUE)))) %>%
+    mutate(Draft_Rd_Lose_D2 = replace_na(Draft_Rd_Lose_D2, 32 * 7 + 1 + rnorm(1, mean = mean(Draft_Rd_Lose_D2, na.rm = TRUE), sd = sd(Draft_Rd_Lose_D2, na.rm = TRUE)))) %>%
+    mutate(across(where(is.numeric), ~replace_na(., quantile(., 0.1, na.rm = TRUE) + rnorm(1, mean = mean(., na.rm = TRUE), sd = sd(., na.rm = TRUE)))))
   return(data_imputed)
 }
-
 
 # still tinkering with desired imputation strategy (if any)
 
