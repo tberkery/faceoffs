@@ -30,6 +30,10 @@ condition = function() {
   data = data %>% remove_cols() %>% condition_cols()
   data_imputed = impute_10th_percentile(data)
   data_imputed = data_imputed %>% drop_na()
+  data_imputed = data_imputed %>% select(-c(season, prior_season))
+  data_imputed = data_imputed[ , which(apply(data_imputed, 2, var) != 0)]
+  non_numeric_data_cols = colnames(data_imputed %>% select(!where(is.numeric)))
+  data_imputed = data_imputed %>% select(all_of(non_numeric_data_cols), all_of(as.vector(setdiff(colnames(data_imputed), non_numeric_data_cols)))) 
   return(data_imputed)
 
 }
@@ -68,7 +72,7 @@ remove_cols = function(data) {
     starts_with('Season_'),
     starts_with('Team_'),
     starts_with('Draft_Yr_'),
-    starts_with('Draft_Ov_'),
+    starts_with('Draft_Rd_'),
     starts_with('GA_') & !contains('on_ice'),
     starts_with('SA_') & !contains('on_ice'),
     starts_with('FA_') & !contains('on_ice'),
