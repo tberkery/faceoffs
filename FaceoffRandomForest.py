@@ -1,7 +1,9 @@
+import sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import GridSearchCV
+from sklearn.decomposition import PCA
 from datetime import datetime
 import pandas as pd
 import numpy as np
@@ -12,22 +14,32 @@ class FaceoffRandomForest:
         self.data = self.read_data()
 
     def read_data(self):
-        data_2018 = pd.read_csv("Full2018.csv")
-        data_2019 = pd.read_csv("Full2019.csv")
-        data = data_2018.append(data_2019)
+        # data_2018 = pd.read_csv("Full2018.csv")
+        # data_2019 = pd.read_csv("Full2019.csv")
+        # data = data_2018.append(data_2019)
+        data = pd.read_csv('C:/Users/Tad/Documents/faceoffs/data_imputed.csv')
         return(data)
 
     def condition_data(self, data):
         return(data)
 
+    def pca(self):
+        data = self.read_data()
+        print("data read")
+        x_cols = self.data.columns[23:]
+        x_cols.remove('faceoff_winning_team_xG_since_faceoff')
+        print(x_cols)
+        x = data[x_cols]
+        y = data['faceoff_winning_team_xG_since_faceoff']
+        pca = PCA(n_components = 100)
+        print("pca fitting")
+        principal_components = pca.fit_transform(x)
+        print(principal_components)
+        principal_components.to_csv("principal_components_python.csv")
+        return(principal_components)
+
     def learn(self):
-        print(self.data.columns[25:27])
-        cols_of_interest_1 = list(self.data.columns[59:64])
-        print(cols_of_interest_1)
-        cols_of_interest_2 = list(self.data.columns[66:71])
-        print(cols_of_interest_2)
-        cols_of_interest = cols_of_interest_1 + cols_of_interest_2
-        print(cols_of_interest)
+        cols_of_interest = self.data.columns[26:]
         cols_of_interest.append('faceoff_winning_team_xG_since_faceoff')
         data_no_na = self.data[cols_of_interest].dropna()
         cols_of_interest.remove('faceoff_winning_team_xG_since_faceoff')
@@ -66,7 +78,7 @@ class FaceoffRandomForest:
 
 def main():
     frf = FaceoffRandomForest()
-    frf.learn()
+    frf.pca()
 
 if __name__ == "__main__":
     main()
