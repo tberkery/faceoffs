@@ -2,7 +2,7 @@
 
 library(tidyverse)
 
-#Enter Zone Entries Entries File Name Here
+#Enter Zone Entries File Name Here
 zone_entries_sample <- read_csv("zone_entries_sample2.csv") %>%
   mutate(pbp = 0,
          home_team = 
