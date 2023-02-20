@@ -3,6 +3,7 @@ library(tidyverse)
 library(finetune)
 library(xgboost)
 
+#This is just the framework of a model. We are not actually using iris data
 faceoffs_data = iris
 
 xgb_spec = 
