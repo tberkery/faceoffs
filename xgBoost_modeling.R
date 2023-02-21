@@ -2,9 +2,49 @@ library(tidymodels)
 library(tidyverse)
 library(finetune)
 library(xgboost)
+library(data.table)
+library(zoo)
 
-#This is just the framework of a model. We are not actually using iris data
-faceoffs_data = iris
+Full2017 <- read_csv("~/Downloads/Full2017.csv")
+
+faceoffs_data = big_join %>%
+  mutate(zone_change_time = 
+           ifelse(event_type == 'ZONE_EXIT' |
+                    event_type == 'ZONE_ENTRY' |
+                    event_type == 'STOP', 
+                  game_seconds, NA),
+         #Taking out entries that occur as the faceoff happens
+         zone_change_time = ifelse(
+           event_type == 'ZONE_ENTRY' &
+             lag(event_type) == 'FAC' &
+             game_seconds == lag(game_seconds),
+           NA,
+           zone_change_time),
+         end_faceoff_attribution =
+           na.locf(zone_change_time, fromLast = TRUE, na.rm = F),
+         zone_time = end_faceoff_attribution - game_seconds) %>%
+  filter((event_type == 'FAC' & event_zone != 'Neu') & 
+           #Looked like reasonable cutoff from density plot
+           zone_time <= 250)
+
+same_games = Full2017 %>%
+  left_join(faceoffs_data,
+            by = c('home_team', 'away_team', 'game_date')) %>%
+  select(game_id)
+
+
+
+# ggplot(faceoffs_data, aes(x = zone_time)) +
+#   geom_density() +
+#   theme_bw() +
+#   xlab('Zone Time (Seconds)') +
+#   ylab('Frequency') +
+#   ggtitle('Post-Faceoff Zone Time')
+
+table(faceoffs_data$event_type)
+%>%
+  filter(event_type == "FAC" & event_zone != 'Neu') %>%
+  select(-zone_change_time)
 
 xgb_spec = 
   boost_tree(
