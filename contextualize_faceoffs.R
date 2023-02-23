@@ -4,7 +4,6 @@ library(tidyr)
 library(stringr)
 skaters = read_csv('EH_goalies_gar.csv')
 eh_goalies  = read_csv('EH_skaters_gar.csv')
-
 # Testing change
 
 load_play_by_play = function(year) {
@@ -185,7 +184,7 @@ parse_out_positions = function(pbp_subset) {
   
   gar_list = get_gar_list()
   
-  pbp_subset_classified_with_gar = pbp_subset_classified %>% head(1000) %>%
+  pbp_subset_classified_with_gar = pbp_subset_classified  %>%
     left_join(gar_list, by = c('winning_team_on_1' = 'EH_ID', 'Season'), suffix = c('', '_winning_team_on_1')) %>%
     rename(winning_team_on_1_GAR = GAR) %>%
     left_join(gar_list, by = c('winning_team_on_2' = 'EH_ID', 'Season'), suffix = c('', '_winning_team_on_2')) %>%
@@ -444,6 +443,6 @@ parse_out_positions = function(pbp_subset) {
   return(pbp_subset_classified_with_gar)
 }
 
-ps = parse_out_positions(pbp %>% head(1000))
+ps = parse_out_positions(pbp_subset)
 
 write_csv(ps, 'Full2017.csv')
