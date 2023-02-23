@@ -4,7 +4,6 @@ library(tidyr)
 library(stringr)
 skaters = read_csv('EH_goalies_gar.csv')
 eh_goalies  = read_csv('EH_skaters_gar.csv')
-
 # Testing change
 
 load_play_by_play = function(year) {
@@ -139,53 +138,53 @@ parse_out_positions = function(pbp_subset) {
       winning_team_on_7 %in% goalies ~ 'G',
       TRUE ~ 'Unknown'
     )) %>% 
-      mutate(losing_team_on_1_pos = case_when(
-        losing_team_on_1 %in% forwards ~ 'F',
-        losing_team_on_1 %in% defensemen ~ 'D',
-        losing_team_on_1 %in% goalies ~ 'G',
-        TRUE ~ 'Unknown'
-      )) %>%
-      mutate(losing_team_on_2_pos = case_when(
-        losing_team_on_2 %in% forwards ~ 'F',
-        losing_team_on_2 %in% defensemen ~ 'D',
-        losing_team_on_2 %in% goalies ~ 'G',
-        TRUE ~ 'Unknown'
-      )) %>%
-      mutate(losing_team_on_3_pos = case_when(
-        losing_team_on_3 %in% forwards ~ 'F',
-        losing_team_on_3 %in% defensemen ~ 'D',
-        losing_team_on_3 %in% goalies ~ 'G',
-        TRUE ~ 'Unknown'
-      )) %>%
-      mutate(losing_team_on_4_pos = case_when(
-        losing_team_on_4 %in% forwards ~ 'F',
-        losing_team_on_4 %in% defensemen ~ 'D',
-        losing_team_on_4 %in% goalies ~ 'G',
-        TRUE ~ 'Unknown'
-      )) %>%
-      mutate(losing_team_on_5_pos = case_when(
-        losing_team_on_5 %in% forwards ~ 'F',
-        losing_team_on_5 %in% defensemen ~ 'D',
-        losing_team_on_5 %in% goalies ~ 'G',
-        TRUE ~ 'Unknown'
-      )) %>%
-      mutate(losing_team_on_6_pos = case_when(
-        losing_team_on_6 %in% forwards ~ 'F',
-        losing_team_on_6 %in% defensemen ~ 'D',
-        losing_team_on_6 %in% goalies ~ 'G',
-        TRUE ~ 'Unknown'
-      )) %>%
-      mutate(losing_team_on_7_pos = case_when(
-        losing_team_on_7 %in% forwards ~ 'F',
-        losing_team_on_7 %in% defensemen ~ 'D',
-        losing_team_on_7 %in% goalies ~ 'G',
-        TRUE ~ 'Unknown'
-      )
+    mutate(losing_team_on_1_pos = case_when(
+      losing_team_on_1 %in% forwards ~ 'F',
+      losing_team_on_1 %in% defensemen ~ 'D',
+      losing_team_on_1 %in% goalies ~ 'G',
+      TRUE ~ 'Unknown'
+    )) %>%
+    mutate(losing_team_on_2_pos = case_when(
+      losing_team_on_2 %in% forwards ~ 'F',
+      losing_team_on_2 %in% defensemen ~ 'D',
+      losing_team_on_2 %in% goalies ~ 'G',
+      TRUE ~ 'Unknown'
+    )) %>%
+    mutate(losing_team_on_3_pos = case_when(
+      losing_team_on_3 %in% forwards ~ 'F',
+      losing_team_on_3 %in% defensemen ~ 'D',
+      losing_team_on_3 %in% goalies ~ 'G',
+      TRUE ~ 'Unknown'
+    )) %>%
+    mutate(losing_team_on_4_pos = case_when(
+      losing_team_on_4 %in% forwards ~ 'F',
+      losing_team_on_4 %in% defensemen ~ 'D',
+      losing_team_on_4 %in% goalies ~ 'G',
+      TRUE ~ 'Unknown'
+    )) %>%
+    mutate(losing_team_on_5_pos = case_when(
+      losing_team_on_5 %in% forwards ~ 'F',
+      losing_team_on_5 %in% defensemen ~ 'D',
+      losing_team_on_5 %in% goalies ~ 'G',
+      TRUE ~ 'Unknown'
+    )) %>%
+    mutate(losing_team_on_6_pos = case_when(
+      losing_team_on_6 %in% forwards ~ 'F',
+      losing_team_on_6 %in% defensemen ~ 'D',
+      losing_team_on_6 %in% goalies ~ 'G',
+      TRUE ~ 'Unknown'
+    )) %>%
+    mutate(losing_team_on_7_pos = case_when(
+      losing_team_on_7 %in% forwards ~ 'F',
+      losing_team_on_7 %in% defensemen ~ 'D',
+      losing_team_on_7 %in% goalies ~ 'G',
+      TRUE ~ 'Unknown'
+    )
     )
   
   gar_list = get_gar_list()
   
-  pbp_subset_classified_with_gar = pbp_subset_classified %>% head(1000) %>%
+  pbp_subset_classified_with_gar = pbp_subset_classified  %>%
     left_join(gar_list, by = c('winning_team_on_1' = 'EH_ID', 'Season'), suffix = c('', '_winning_team_on_1')) %>%
     rename(winning_team_on_1_GAR = GAR) %>%
     left_join(gar_list, by = c('winning_team_on_2' = 'EH_ID', 'Season'), suffix = c('', '_winning_team_on_2')) %>%
@@ -396,7 +395,7 @@ parse_out_positions = function(pbp_subset) {
            Lose_G5_Name = NA,
            Lose_G6_Name = NA,
            Lose_G7_Name = NA
-           )
+    )
   
   for (row in 1:nrow(pbp_subset_classified_with_gar)) {
     print(paste0(row, " ", round(row/nrow(pbp_subset_classified_with_gar)),2))
@@ -444,6 +443,6 @@ parse_out_positions = function(pbp_subset) {
   return(pbp_subset_classified_with_gar)
 }
 
-ps = parse_out_positions(pbp %>% head(1000))
+ps = parse_out_positions(pbp_subset)
 
 write_csv(ps, 'Full2017.csv')
