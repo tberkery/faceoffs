@@ -59,7 +59,14 @@ proj_by_player_season = function(model_projections) {
            sum_perf = sum(perf, na.rm = TRUE),
            count_perf = n()
     ) %>%
-    distinct(summary, eh_season, zone, .keep_all = TRUE)
+    distinct(summary, eh_season, zone, .keep_all = TRUE) %>%
+    pivot_wider(id_cols = c('summary', 'eh_season'), names_from = c('zone'), values_from = c('avg_perf', 'avg_proj', 'sum_perf', 'sum_proj'))
   model_projections_with_players_by_zone %>% write_csv("player_projections_by_zone.csv")
     
+}
+
+build_viz = function() {
+  data_overall = read_csv('player_projections_overall.csv') %>% select((1048-25):1048)
+  data_by_zone = read_csv('player_projections_by_zone.csv') %>% select((1049-26):1049)
+  
 }

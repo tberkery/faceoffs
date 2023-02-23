@@ -3,7 +3,8 @@
 library(tidyverse)
 
 #Enter Zone Entries File Name Here
-zone_entries_sample <- read_csv("zone_entries_sample2.csv") %>%
+#zone_entries_sample <- read_csv("zone_entries_sample2.csv") %>%
+zone_entries_sample = zone_entries %>%
   mutate(pbp = 0,
          home_team = 
            case_when(
@@ -25,7 +26,8 @@ zone_entries_sample <- read_csv("zone_entries_sample2.csv") %>%
          )
 
 #Enter Zone Exits File Name Here
-zone_exits_sample <- read_csv("zone_exits_sample.csv") %>%
+#zone_exits_sample <- read_csv("zone_exits_sample.csv") %>%
+zone_exits_sample = zone_exits %>%
   mutate(pbp = 0,
          home_team = 
            case_when(
@@ -122,6 +124,8 @@ exits_games2 = zone_exits_sample %>%
   rename(game_id = game_id.x)
 
 big_join = pbp %>%
+  mutate(game_date = substr(game_date, 1, 10),
+         clock_time = substr(clock_time, 1, 5)) %>%
   bind_rows(entries_games2) %>%
   bind_rows(exits_games2) %>%
   group_by(game_id) %>%

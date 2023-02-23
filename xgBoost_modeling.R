@@ -5,7 +5,7 @@ library(xgboost)
 library(data.table)
 library(zoo)
 
-Full2017 <- read_csv("~/Downloads/Full2018.csv")
+Full2017 <- read_csv("Full2017_updated.csv")
 
 faceoffs_data = big_join %>%
   mutate(zone_change_time = 
@@ -28,11 +28,25 @@ faceoffs_data = big_join %>%
            zone_time <= 250)
 
 same_games = Full2017 %>%
+  mutate(game_date = substr(game_date, 1, 10)) %>%
   left_join(faceoffs_data,
             by = c('home_team', 'away_team', 'game_date')) %>%
-  select(game_id)
+  select(game_id) %>%
+  distinct(game_id)
 
+faceoffs_data = faceoffs_data %>%
+  arrange(game_date, game_id, game_seconds)
 
+faceoffs_data_subset = faceoffs_data %>%
+  select(season, game_id, game_seconds, zone_change_time, end_faceoff_attribution, zone_time)
+faceoffs_with_xg = Full2017 %>%
+  left_join(faceoffs_data_subset, by = c('season_x' = 'season', 'game_id_x' = 'game_id', 'game_seconds')) %>%
+  inner_join(same_games, by = c('game_id_x' = 'game_id'))
+
+faceoffs_with_xg = faceoffs_with_xg %>%
+  filter(event_zone != 'Neu')
+
+# now use pred_goal to get expected goals for both teams
 
 # ggplot(faceoffs_data, aes(x = zone_time)) +
 #   geom_density() +
@@ -41,8 +55,7 @@ same_games = Full2017 %>%
 #   ylab('Frequency') +
 #   ggtitle('Post-Faceoff Zone Time')
 
-table(faceoffs_data$event_type)
-%>%
+table(faceoffs_data$event_type) %>%
   filter(event_type == "FAC" & event_zone != 'Neu') %>%
   select(-zone_change_time)
 

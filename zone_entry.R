@@ -98,29 +98,29 @@ create_zone_entries = function(pbp, games) {
   zone_entries = zone_entries %>%
     select(all_of(pbp_cols))
   
-  pbp_with_zone_entries = pbp %>%
-    mutate(game_date = substr(game_date, 1, 10)) %>%
-    rbind(zone_entries)
+  #pbp_with_zone_entries = pbp %>%
+  #  mutate(game_date = substr(game_date, 1, 10)) %>%
+  #  rbind(zone_entries)
   
-  pbp_with_zone_entries = pbp_with_zone_entries %>%
-    mutate(game_id_numeric = as.double(game_id))
-  pbp_with_zone_entries = pbp_with_zone_entries %>%
-    mutate(game_id = fill(game_id_numeric)) %>% # Note that a Sznajder event is never the first chronological event of a game
-    arrange(game_id, game_seconds) %>%
-    select(-game_id_numeric)
+  #pbp_with_zone_entries = pbp_with_zone_entries %>%
+  #  mutate(game_id_numeric = as.double(game_id))
+  #pbp_with_zone_entries = pbp_with_zone_entries %>%
+  #  mutate(game_id = fill(game_id_numeric)) %>% # Note that a Sznajder event is never the first chronological event of a game
+  #  arrange(game_id, game_seconds) %>%
+  #  select(-game_id_numeric)
   
-  mutate_fields = c('players_on', 'players_off', 'home_on_1', 'home_on_2', 'home_on_3',
-                    'home_on_4', 'home_on_5', 'home_on_6', 'home_on_7', 'away_on_1', 
-                    'away_on_2', 'away_on_3', 'away_on_4', 'away_on_5', 'away_on_6',
-                    'away_on_7', 'home_goalie', 'away_goalie', 'home_team', 'away_team',
-                    'home_skaters', 'away_skaters', 'home_score', 'away_score',
-                    'game_score_state', 'game_strength_state', 'home_zone',
-                    'shift_index', 'season', 'game_id', 'session', 'event_index',
-                    'game_strength_state', 'event_team')
-  
-  pbp_with_zone_entries = pbp_with_zone_entries %>%
-    fill(is_pp) %>%
-    mutate(across(all_of(mutate_fields), ~ifelse(event_type == 'ZONE_ENTRY', lag(., 1), .)))
+  # mutate_fields = c('players_on', 'players_off', 'home_on_1', 'home_on_2', 'home_on_3',
+  #                   'home_on_4', 'home_on_5', 'home_on_6', 'home_on_7', 'away_on_1', 
+  #                   'away_on_2', 'away_on_3', 'away_on_4', 'away_on_5', 'away_on_6',
+  #                   'away_on_7', 'home_goalie', 'away_goalie', 'home_team', 'away_team',
+  #                   'home_skaters', 'away_skaters', 'home_score', 'away_score',
+  #                   'game_score_state', 'game_strength_state', 'home_zone',
+  #                   'shift_index', 'season', 'game_id', 'session', 'event_index',
+  #                   'game_strength_state', 'event_team')
+  # 
+  # pbp_with_zone_entries = pbp_with_zone_entries %>%
+  #   fill(is_pp) %>%
+  #   mutate(across(all_of(mutate_fields), ~ifelse(event_type == 'ZONE_ENTRY', lag(., 1), .)))
 
   # pbp_with_zone_entries = pbp_with_zone_entries %>%
   #   #mutate(across(all_of(vecs), ~ifelse(is.na(.), lag(., 1), .)))
@@ -166,7 +166,8 @@ create_zone_entries = function(pbp, games) {
   #     game_strength_state = ifelse(event_type == 'ZONE_ENTRY', lag(game_strength_state, 1), game_strength_state),
   #     event_team = ifelse(event_type == 'ZONE_ENTRY', substr(event_player_1, -3, -1), event_player_1) # inner ifelse logic handles single digit numbers (e.g. 8PIT vs. 18PIT)
   #   )
-  return(pbp_with_zone_entries)
+  return(zone_entries)
+  #return(pbp_with_zone_entries)
 }
 
 create_zone_exits = function(pbp, games_zone_exits) {
