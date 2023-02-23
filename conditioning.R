@@ -31,7 +31,7 @@ condition = function() {
   data_imputed = impute_10th_percentile(data)
   data_imputed = data_imputed %>% drop_na()
   data_imputed = data_imputed %>% select(-c(season, prior_season))
-  data_imputed = data_imputed[ , which(apply(data_imputed, 2, var) != 0)]
+  # data_imputed_nonzero_var = data_imputed[ , which(apply(data_imputed, 2, var) != 0)]
   non_numeric_data_cols = colnames(data_imputed %>% select(!where(is.numeric)))
   data_imputed = data_imputed %>% select(all_of(non_numeric_data_cols), all_of(as.vector(setdiff(colnames(data_imputed), non_numeric_data_cols)))) 
   return(data_imputed)
