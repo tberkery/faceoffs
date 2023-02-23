@@ -15,7 +15,7 @@ faceoffs_data = big_join %>%
                   game_seconds, NA),
          #Taking out entries that occur as the faceoff happens
          zone_change_time = ifelse(
-           event_type == 'ZONE_ENTRY' &
+           (event_type == 'ZONE_ENTRY' | event_type == 'ZONE_EXIT') &
              lag(event_type) == 'FAC' &
              game_seconds == lag(game_seconds),
            NA,
@@ -45,6 +45,11 @@ faceoffs_with_xg = Full2017 %>%
 
 faceoffs_with_xg = faceoffs_with_xg %>%
   filter(event_zone != 'Neu')
+
+xg_info = big_join %>%
+  select(season, game_id, game_seconds, zone_change_time, end_faceoff_attribution, zone_time, pred_goal) %>%
+  filter(event_type == "SHOT" | event_type == "MISS" | event_type == "GOAL" | event_type == "FAC") %>%
+  mutate(index = )
 
 # now use pred_goal to get expected goals for both teams
 

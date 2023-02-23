@@ -269,28 +269,30 @@ create_zone_exits = function(pbp, games_zone_exits) {
   zone_exits = zone_exits %>%
     select(all_of(pbp_cols))
   
+  return(zone_exits)
+  
   #pbp_pp_start_and_end = pbp %>%
   #  filter(is_pp == TRUE & (lag(is_pp, 1) == FALSE | lead(is_pp, 1) == FALSE))
   
-  pbp_with_zone_exits = pbp %>%
-    mutate(game_date = substr(game_date, 1, 10)) %>%
-    rbind(zone_exits)
-  
-  pbp_with_zone_exits = pbp_with_zone_exits %>%
-    arrange(game_id, game_seconds)
-  
-  mutate_fields = c('players_on', 'players_off', 'home_on_1', 'home_on_2', 'home_on_3',
-                    'home_on_4', 'home_on_5', 'home_on_6', 'home_on_7', 'away_on_1', 
-                    'away_on_2', 'away_on_3', 'away_on_4', 'away_on_5', 'away_on_6',
-                    'away_on_7', 'home_goalie', 'away_goalie', 'home_team', 'away_team',
-                    'home_skaters', 'away_skaters', 'home_score', 'away_score',
-                    'game_score_state', 'game_strength_state', 'home_zone',
-                    'shift_index', 'season', 'game_id', 'session', 'event_index',
-                    'game_strength_state', 'event_team')
-  
-  pbp_with_zone_exits = pbp_with_zone_exits %>%
-    mutate(across(all_of(mutate_fields), ~ifelse(event_type == 'ZONE_EXIT', lag(., 1), .))) %>%
-    fill(is_pp)
-  
-  return(pbp_with_zone_exits)
+  # pbp_with_zone_exits = pbp %>%
+  #   mutate(game_date = substr(game_date, 1, 10)) %>%
+  #   rbind(zone_exits)
+  # 
+  # pbp_with_zone_exits = pbp_with_zone_exits %>%
+  #   arrange(game_id, game_seconds)
+  # 
+  # mutate_fields = c('players_on', 'players_off', 'home_on_1', 'home_on_2', 'home_on_3',
+  #                   'home_on_4', 'home_on_5', 'home_on_6', 'home_on_7', 'away_on_1', 
+  #                   'away_on_2', 'away_on_3', 'away_on_4', 'away_on_5', 'away_on_6',
+  #                   'away_on_7', 'home_goalie', 'away_goalie', 'home_team', 'away_team',
+  #                   'home_skaters', 'away_skaters', 'home_score', 'away_score',
+  #                   'game_score_state', 'game_strength_state', 'home_zone',
+  #                   'shift_index', 'season', 'game_id', 'session', 'event_index',
+  #                   'game_strength_state', 'event_team')
+  # 
+  # pbp_with_zone_exits = pbp_with_zone_exits %>%
+  #   mutate(across(all_of(mutate_fields), ~ifelse(event_type == 'ZONE_EXIT', lag(., 1), .))) %>%
+  #   fill(is_pp)
+  # 
+  # return(pbp_with_zone_exits)
 }

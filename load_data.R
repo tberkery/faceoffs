@@ -134,13 +134,14 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
     select(season_game_index, home_team, away_team) %>%
     distinct(season_game_index, home_team, away_team, .keep_all = TRUE)
   
-  pbp_with_sznajder = create_zone_entries(pbp_with_sznajder, games_zone_entries)
-  pbp_with_sznajder = pbp_with_sznajder %>%
-    arrange(game_id, game_seconds)
-  pbp_with_sznajder = create_zone_exits(pbp_with_sznajder, games_zone_exits)
-  pbp_with_sznajder = pbp_with_sznajder %>%
-    arrange(game_id, game_seconds)
-  return(pbp_with_sznajder)
+  zone_entries = create_zone_entries(pbp_with_sznajder, games_zone_entries)
+  zone_exits = create_zone_exits(pbp_with_sznajder, games_zone_exits)
+  # pbp_with_sznajder = pbp_with_sznajder %>%
+  #   arrange(game_id, game_seconds)
+  # pbp_with_sznajder = create_zone_exits(pbp_with_sznajder, games_zone_exits)
+  # pbp_with_sznajder = pbp_with_sznajder %>%
+  #   arrange(game_id, game_seconds)
+  # return(pbp_with_sznajder)
 }
 
 filter_games = function(pbp_with_sznajder) {

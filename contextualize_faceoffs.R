@@ -445,4 +445,4 @@ parse_out_positions = function(pbp_subset) {
 
 ps = parse_out_positions(pbp_subset)
 
-write_csv(ps, 'Full2017.csv')
+write_csv(ps, 'Full2018_updated_partial.csv')
