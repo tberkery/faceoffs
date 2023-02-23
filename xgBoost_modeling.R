@@ -5,7 +5,7 @@ library(xgboost)
 library(data.table)
 library(zoo)
 
-Full2017 <- read_csv("~/Downloads/Full2017.csv")
+Full2017 <- read_csv("~/Downloads/Full2018.csv")
 
 faceoffs_data = big_join %>%
   mutate(zone_change_time = 

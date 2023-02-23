@@ -6,7 +6,7 @@ source("link.R")
 source("zone_entry.R")
 
 start_year = 2017
-end_year = 2021
+end_year = 2018
 
 load_eh_pbp = function(start_year, end_year) {
   next_year = start_year + 1

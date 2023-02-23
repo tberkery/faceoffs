@@ -11,7 +11,7 @@ load_play_by_play = function(year) {
   return(pbp)
 }
 
-pbp = load_play_by_play(2017)
+pbp = load_play_by_play(2018)
 
 get_goalies_list = function(eh_goalies) {
   goalie_eh_ids = unique(eh_goalies$EH_ID)
