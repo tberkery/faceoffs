@@ -42,7 +42,7 @@ condition_pbp_for_faceoffs = function(pbp) {
   pbp_subset = pbp %>%
     filter(event_type != 'CHANGE') %>%
     filter(event_type == 'FAC' | lead(event_type, 1) == 'FAC') %>%
-    select(game_date, season_x, home_team, away_team, 
+    select(game_date, season_x, home_team, away_team, game_id_x, game_period, game_seconds, clock_time,
            event_type, event_team, event_zone, event_player_1, event_player_2,
            starts_with('home_on'), home_goalie, home_skaters, starts_with('away_on'),
            faceoff_winning_team_xG_since_faceoff, faceoff_losing_team_xG_since_faceoff) %>%
@@ -185,7 +185,7 @@ parse_out_positions = function(pbp_subset) {
   
   gar_list = get_gar_list()
   
-  pbp_subset_classified_with_gar = pbp_subset_classified %>%
+  pbp_subset_classified_with_gar = pbp_subset_classified %>% head(1000) %>%
     left_join(gar_list, by = c('winning_team_on_1' = 'EH_ID', 'Season'), suffix = c('', '_winning_team_on_1')) %>%
     rename(winning_team_on_1_GAR = GAR) %>%
     left_join(gar_list, by = c('winning_team_on_2' = 'EH_ID', 'Season'), suffix = c('', '_winning_team_on_2')) %>%
@@ -403,23 +403,23 @@ parse_out_positions = function(pbp_subset) {
     
     pbp_subset_classified_with_gar[row,] -> Temp
     
-    Temp[158:164] = as.list(as.numeric(Temp[74:80][order(-Temp[74:80])]))
-    Temp[165:171] = as.list(as.character(Temp[102:108][order(-Temp[74:80])]))
+    Temp[162:168] = as.list(as.numeric(Temp[78:84][order(-Temp[78:84])]))
+    Temp[169:175] = as.list(as.character(Temp[106:112][order(-Temp[78:84])]))
     
-    Temp[172:178] = as.list(as.numeric(Temp[81:87][order(-Temp[81:87])]))
-    Temp[179:185] = as.list(as.character(Temp[109:115][order(-Temp[81:87])]))
+    Temp[176:182] = as.list(as.numeric(Temp[85:91][order(-Temp[85:91])]))
+    Temp[183:189] = as.list(as.character(Temp[113:119][order(-Temp[85:91])]))
     
-    Temp[186:192] = as.list(as.numeric(Temp[88:94][order(-Temp[88:94])]))
-    Temp[193:199] = as.list(as.character(Temp[116:122][order(-Temp[88:94])]))
+    Temp[190:196] = as.list(as.numeric(Temp[92:98][order(-Temp[92:98])]))
+    Temp[197:203] = as.list(as.character(Temp[116:122][order(-Temp[92:98])]))
     
-    Temp[200:206] = as.list(as.numeric(Temp[95:101][order(-Temp[95:101])]))
-    Temp[207:213] = as.list(as.character(Temp[123:129][order(-Temp[95:101])]))
+    Temp[204:210] = as.list(as.numeric(Temp[99:105][order(-Temp[99:105])]))
+    Temp[211:217] = as.list(as.character(Temp[127:133][order(-Temp[99:105])]))
     
-    Temp[214:220] = as.list(as.numeric(Temp[130:136][order(-Temp[130:136])]))
-    Temp[221:227] = as.list(as.character(Temp[144:150][order(-Temp[130:136])]))
+    Temp[218:224] = as.list(as.numeric(Temp[134:140][order(-Temp[134:140])]))
+    Temp[225:231] = as.list(as.character(Temp[148:154][order(-Temp[134:140])]))
     
-    Temp[228:234] = as.list(as.numeric(Temp[137:143][order(-Temp[137:143])]))
-    Temp[235:241] = as.list(as.character(Temp[151:157][order(-Temp[137:143])]))
+    Temp[232:238] = as.list(as.numeric(Temp[141:147][order(-Temp[141:147])]))
+    Temp[239:245] = as.list(as.character(Temp[155:161][order(-Temp[141:147])]))
     
     
     if(row == 1){
@@ -444,6 +444,6 @@ parse_out_positions = function(pbp_subset) {
   return(pbp_subset_classified_with_gar)
 }
 
-ps = parse_out_positions(pbp_subset)
+ps = parse_out_positions(pbp %>% head(1000))
 
 write_csv(ps, 'Full2017.csv')
