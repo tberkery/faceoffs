@@ -22,7 +22,9 @@ create_zone_entries = function(pbp, games) {
     mutate(game_date = substr(effective_game_date, 1, 10))
   zone_entries = games %>%
     rename(game_period = Period,
-           clock_time = Time)
+           clock_time = Time) %>%
+    filter(game_period == '1' | game_period == '2' | game_period == '3') %>% # Remark: will omit overtime(s)/shootout
+    mutate(game_period = as.numeric(game_period))
   zone_entries = zone_entries %>%
     mutate(full_periods_elapsed = ifelse(game_period == 1, 0, game_period - 1)) %>%
     mutate(minutes_elapsed_in_period = 20 - 1 - as.numeric(substr(clock_time, 1, 2))) %>%
@@ -191,7 +193,9 @@ create_zone_exits = function(pbp, games_zone_exits) {
     mutate(game_date = substr(effective_game_date, 1, 10))
   zone_exits = games_zone_exits %>%
     rename(game_period = Period,
-           clock_time = Time)
+           clock_time = Time) %>%
+    filter(game_period == '1' | game_period == '2' | game_period == '3') %>% # Remark: will omit overtime(s)/shootout
+    mutate(game_period = as.numeric(game_period))
   zone_exits = zone_exits %>%
     mutate(full_periods_elapsed = ifelse(game_period == 1, 0, game_period - 1)) %>%
     mutate(minutes_elapsed_in_period = 20 - 1 - as.numeric(substr(clock_time, 1, 2))) %>%

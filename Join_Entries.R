@@ -1,7 +1,7 @@
 #Enter Zone Exits File Name Here
 
 library(tidyverse)
-
+year = 2020
 #Enter Zone Entries File Name Here
 #zone_entries_sample <- read_csv("zone_entries_sample2.csv") %>%
 zone_entries_sample = zone_entries %>%
@@ -49,7 +49,8 @@ zone_exits_sample = zone_exits %>%
   )
 
 #Enter ZEH PBP Data Here
-pbp = read_csv('EH_pbp_query_20172018.csv') %>%
+pbp = read_csv(paste0('EH_pbp_query_', year, year + 1, '.csv')) %>%
+  rbind(read_csv(paste0('EH_pbp_query_', year + 1, year + 2, '.csv'))) %>%
   mutate(pbp = 1,
          teams = paste(pmin(home_team,away_team), pmax(home_team,away_team), sep = ','))
 
@@ -62,6 +63,7 @@ entries_games = zone_entries_sample %>%
 exits_games = zone_exits_sample %>%
   group_by(game_date, teams) %>%
   distinct(game_date, teams) %>%
+  gropu_by(game_id, teams)
   summarise(exits_game = n()) %>%
   arrange(game_date) 
 

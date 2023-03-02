@@ -6,9 +6,19 @@ source("link.R")
 source("zone_entry.R")
 # setwd("/Users/mstevens20/Documents/Hockey-Analytics/faceoffs-main")
 
+# REMARK: for 2020-2021 season, NEED TO MANUALLY CHANGE FILE NAMES FOR...
+# 20001... switch vs. to @ for file in Entries folder
+# 20003... switch vs. to @ for file in Entries folder
+# 20013... remove both 20013 games (duplicate games)
+# 20004... remove... exits file is messed up
+# 20021... remove... no exits included
+# 20095... remvoe... 
 
-start_year = 2017
-end_year = 2018
+#special_2020_20001 = openxlsx::read.xlsx("./Corey Sznajder Data/2020-21 Season/Entries/20001 PIT @ PHI.xlsx")
+#special_2020_20002 = openxlsx::read.xlsx("./Corey Sznajder Data/2020-21 Season/Entries/20003 MTL @ TOR.xlsx")
+
+start_year = 2020
+end_year = 2022
 
 load_eh_pbp = function(start_year, end_year) {
   next_year = start_year + 1
@@ -17,14 +27,16 @@ load_eh_pbp = function(start_year, end_year) {
                       game_strength_state == '4v5')) #%>%
   #filter(is_pp == TRUE)
   one_plus = next_year
-  for (year in one_plus:end_year) {
-    next_year = year + 1
-    pbp_year = read_csv(paste0("EH_pbp_query_", year, next_year, ".csv"))
-    pbp_year_pp = pbp_year %>%
-      mutate(is_pp = (game_score_state == '5v4' |
-                        game_score_state == '4v5')) %>%
-      #filter(is_pp == TRUE)
-      pbp = rbind(pbp, pbp_year_pp)
+  if (one_plus < end_year - 1) {
+    for (year in one_plus:(end_year - 1)) {
+      next_year = year + 1
+      pbp_year = read_csv(paste0("EH_pbp_query_", year, next_year, ".csv"))
+      pbp_year_pp = pbp_year %>%
+        mutate(is_pp = (game_score_state == '5v4' |
+                          game_score_state == '4v5')) %>%
+        #filter(is_pp == TRUE)
+        pbp = rbind(pbp, pbp_year_pp)
+    }
   }
   pbp_initial = pbp
   return(pbp)
@@ -40,8 +52,7 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
   pbp = pbp %>%
     mutate(clock_time = format(clock_time, '%H:%M:%S')) %>%
     mutate(clock_time = substr(clock_time, 1, 5))
-  for (year in 2017:2017) {
-    year = 2017
+  for (year in start_year:(end_year - 1)) {
     formatted_season = paste0(year, "-", year + 1 - 2000, " Season")
     if (year == 2020) {
       game_files = list.files(path = paste0("./Corey Sznajder Data/", formatted_season, "/Entries"), # change this to Entries and or Exits
@@ -52,7 +63,7 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
                               pattern='.xlsx', all.files=TRUE, full.names = FALSE)
     }
     if (year == 2017) {
-    game_files = list.files(path = paste0("./Corey Sznajder Data/", formatted_season, "/Game Reports"), 
+      game_files = list.files(path = paste0("./Corey Sznajder Data/", formatted_season, "/Game Reports"), 
                             pattern='.xlsx', all.files=TRUE, full.names = FALSE)
     }
     for (file in game_files) {
@@ -76,12 +87,12 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
         game_file_zone_entries = openxlsx::read.xlsx(file_with_path, 'Raw Entries')
         game_file_zone_exits = openxlsx::read.xlsx(file_with_path, 'Zone Exits Raw Data')
       }
-      if (year == 2020 || year == 2021) {
+      if (year == 2020 | year == 2021) {
         season_game_index = word(file, 1)
         if (season_game_index == 20245) { # this game is not tracking entries, just skip it 
           next
         }
-        if (word(file, 3) == '@' || word(file, 3) == 'at'){
+        if (word(file, 3) == '@' | word(file, 3) == 'at'){
           away_team = word(file, 2)
           home_team = word(file, 4)
           home_team = toupper(str_to_title(str_sub(home_team, 1, 3)))
@@ -133,7 +144,6 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
       
       }
       if (year == 2020) {
-        
         file_with_path = paste0("./Corey Sznajder Data/", formatted_season, "/Entries/", file) # change to Entries
         file_with_path2 = paste0("./Corey Sznajder Data/", formatted_season, "/Exits/", file) # change to Exits
         game_file_zone_entries = openxlsx::read.xlsx(file_with_path) 
@@ -141,8 +151,21 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
         if (class(mtry) != "try-error") {
           openxlsx::read.xlsx(file_with_path2)
         } else {
-          message("File doesn't exist, please check")
-          next
+          contains_vs = grepl("vs.", file_with_path2)
+          contains_at_symbol = grepl("@", file_with_path2)
+          if (grepl("vs.", file) & contains_at_symbol) {
+            gsub("@", "vs.", file_with_path2) # Change symbol to @
+          } else if (grepl("@", file) & contains_vs) {
+            gsub("vs.", "@", file_with_path2) # Change symbol to @# Change symbol to @
+          }
+          mtry_2 = try(openxlsx::read.xlsx(file_with_path2), silent = TRUE)
+          if (class(mtry_2) != "try-error") {
+            openxlsx::read.xlsx(file_with_path2)
+          } else {
+            message("File doesn't exist, please check")
+            print(file_with_path2)
+            next
+          }
         }
         game_file_zone_exits = openxlsx::read.xlsx(file_with_path2)
       }
@@ -153,6 +176,7 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
           game_file = openxlsx::read.xlsx(file_with_path, 'Tracking')
         } else {
           message("File doesn't exist, please check")
+          print(file_with_path)
           next
         }
         game_file_zone_entries <- game_file[, colnames(game_file)[c(1:3, 20:26)]]
@@ -162,7 +186,7 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
       if (is_null(game_file_zone_entries) | is_null(game_file_zone_exits)) { # skip over games with empty zone entry file or empy zone exit file (e.g. one Dallas/Colorado game)
         next
       }
-      if (year == 2020 || year == 2021) {
+      if (year == 2020 | year == 2021) {
         # entries
         if("L.Ane" %in% colnames(game_file_zone_entries))
         {
@@ -308,9 +332,33 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
       game_file_zone_entries = game_file_zone_entries %>%
         mutate(season_game_index = season_game_index,
                home_team = home_team,
-               away_team = away_team)
+               away_team = away_team,
+               Opp = away_team)
       
-      if (year == 2020 || year == 2021) { 
+      if (year == 2020 | year == 2021) { 
+        # home_team_temp and away_team_temp are currently full city names. Opp is abbreviations.
+        #left_join(team_lookup, by = c('home_team' = 'abbreviation')) %>%
+        #left_join(team_lookup, by = c('away_team' = 'abbreviation'), suffix = c('_home', '_away')) %>%
+        #mutate(home_team = abbreviation_home,
+        #       away_team = abbreviation_away) %>%
+        game_file_zone_entries = game_file_zone_entries %>% 
+          mutate(Opp = away_team) %>%
+          mutate(home_team_temp = home_team,
+                 away_team_temp = away_team) %>%
+          mutate(home_team = ifelse(home_team_temp == Opp, away_team_temp, home_team_temp),
+                 away_team = ifelse(away_team_temp == Opp, away_team_temp, home_team_temp),
+                 effective_game_date = file_creation_date) %>%
+          select(-c(home_team_temp, away_team_temp)) %>%
+          mutate(abbreviation_home = home_team,
+                 abbreviation_away = away_team)
+        sznajder_game_ids_and_teams = game_file_zone_entries %>%
+          select(season_game_index, home_team, away_team) %>%
+          distinct(season_game_index, .keep_all = TRUE)
+        game_file_zone_exits = game_file_zone_exits %>%
+          mutate(season_game_index = season_game_index,
+                 effective_game_date = file_creation_date) %>%
+          inner_join(sznajder_game_ids_and_teams, by = 'season_game_index')
+      } else {
         game_file_zone_entries = game_file_zone_entries %>% # home_team_temp and away_team_temp are currently full city names. Opp is abbreviations.
           left_join(team_lookup, by = c('home_team' = 'city')) %>%
           left_join(team_lookup, by = c('away_team' = 'city'), suffix = c('_home', '_away')) %>%
@@ -330,25 +378,6 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
                  effective_game_date = file_creation_date) %>%
           inner_join(sznajder_game_ids_and_teams, by = 'season_game_index')
       }
-      
-      game_file_zone_entries = game_file_zone_entries %>% # home_team_temp and away_team_temp are currently full city names. Opp is abbreviations.
-        left_join(team_lookup, by = c('home_team' = 'city')) %>%
-        left_join(team_lookup, by = c('away_team' = 'city'), suffix = c('_home', '_away')) %>%
-        mutate(home_team = abbreviation_home,
-               away_team = abbreviation_away) %>%
-        mutate(home_team_temp = home_team,
-               away_team_temp = away_team) %>%
-        mutate(home_team = ifelse(home_team_temp == Opp, away_team_temp, home_team_temp),
-               away_team = ifelse(away_team_temp == Opp, away_team_temp, home_team_temp),
-               effective_game_date = file_creation_date) %>%
-        select(-c(home_team_temp, away_team_temp))
-      sznajder_game_ids_and_teams = game_file_zone_entries %>%
-        select(season_game_index, home_team, away_team) %>%
-        distinct(season_game_index, .keep_all = TRUE)
-      game_file_zone_exits = game_file_zone_exits %>%
-        mutate(season_game_index = season_game_index,
-               effective_game_date = file_creation_date) %>%
-        inner_join(sznajder_game_ids_and_teams, by = 'season_game_index')
       
       game_file_zone_entries = game_file_zone_entries %>%
         mutate(Time = openxlsx::convertToDateTime(Time, origin = "1900-01-01")) %>%
