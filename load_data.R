@@ -20,7 +20,7 @@ load_eh_pbp = function(start_year, end_year) {
     pbp_year = read_csv(paste0("EH_pbp_query_", year, next_year, ".csv"))
     pbp_year_pp = pbp_year %>%
       mutate(is_pp = (game_score_state == '5v4' |
-                        game_score_state == '4v5')) %>%
+                        game_score_state == '4v5')) #%>%
       #filter(is_pp == TRUE)
     pbp = rbind(pbp, pbp_year_pp)
   }
