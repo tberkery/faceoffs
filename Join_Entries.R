@@ -63,7 +63,6 @@ entries_games = zone_entries_sample %>%
 exits_games = zone_exits_sample %>%
   group_by(game_date, teams) %>%
   distinct(game_date, teams) %>%
-  gropu_by(game_id, teams)
   summarise(exits_game = n()) %>%
   arrange(game_date) 
 
