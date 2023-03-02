@@ -328,13 +328,21 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
       # adjust team names so they are the full length names no longer abbreviations
       
       file_creation_date = file.info(file_with_path)$ctime # Read when file was first created. Will use as game date.
+      team_home = home_team
+      team_away = away_team
+      print(team_home)
+      print(team_away)
       # TODO: before dataframe transformations, need to fix the fact that "GOAL" column is duplicated
       game_file_zone_entries = game_file_zone_entries %>%
         mutate(season_game_index = season_game_index,
                home_team = home_team,
                away_team = away_team,
                Opp = away_team)
-      
+      # game_file_zone_exits = game_file_zone_exits %>%
+      #   mutate(season_game_index = season_game_index,
+      #          home_team = home_team,
+      #          away_team = away_team,
+      #          Opp = away_team) 
       if (year == 2020 | year == 2021) { 
         # home_team_temp and away_team_temp are currently full city names. Opp is abbreviations.
         #left_join(team_lookup, by = c('home_team' = 'abbreviation')) %>%
@@ -357,14 +365,17 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
         game_file_zone_exits = game_file_zone_exits %>%
           mutate(season_game_index = season_game_index,
                  effective_game_date = file_creation_date) %>%
-          inner_join(sznajder_game_ids_and_teams, by = 'season_game_index')
+          mutate(home_team = home_team, away_team = away_team)
+          #inner_join(sznajder_game_ids_and_teams, by = 'season_game_index') %>%
+          #select(-c(home_team, away_team)) %>%
+          #rename(home_team = home_team.y, away_team = away_team.y)
       } else {
         game_file_zone_entries = game_file_zone_entries %>% # home_team_temp and away_team_temp are currently full city names. Opp is abbreviations.
           left_join(team_lookup, by = c('home_team' = 'city')) %>%
           left_join(team_lookup, by = c('away_team' = 'city'), suffix = c('_home', '_away')) %>%
           mutate(home_team = abbreviation_home,
-                 away_team = abbreviation_away) %>%
-          mutate(home_team_temp = home_team,
+                 away_team = abbreviation_away,
+                 home_team_temp = home_team,
                  away_team_temp = away_team) %>%
           mutate(home_team = ifelse(home_team_temp == Opp, away_team_temp, home_team_temp),
                  away_team = ifelse(away_team_temp == Opp, away_team_temp, home_team_temp),
@@ -376,7 +387,8 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
         game_file_zone_exits = game_file_zone_exits %>%
           mutate(season_game_index = season_game_index,
                  effective_game_date = file_creation_date) %>%
-          inner_join(sznajder_game_ids_and_teams, by = 'season_game_index')
+          inner_join(sznajder_game_ids_and_teams, by = 'season_game_index') #%>%
+          #rename(home_team = home_team.y, away_team = away_team.y)
       }
       
       game_file_zone_entries = game_file_zone_entries %>%
@@ -384,19 +396,19 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
         mutate(Time = format(as.POSIXct(Time), format = '%H:%M:%S')) %>%
         mutate(Time = as.character(Time)) %>%
         mutate(Time = substr(Time, 1, 5)) %>% # Now a string format of MM:SS
-        left_join(team_lookup, by = c('home_team' = 'city')) %>%
-        left_join(team_lookup, by = c('away_team' = 'city'), suffix = c('_home', '_away')) %>%
-        mutate(home_team = abbreviation_home,
-               away_team = abbreviation_away)
+      #   left_join(team_lookup, by = c('home_team' = 'city')) %>%
+      #   left_join(team_lookup, by = c('away_team' = 'city'), suffix = c('_home', '_away')) %>%
+      #   mutate(home_team = abbreviation_home,
+      #          away_team = abbreviation_away)
       game_file_zone_exits = game_file_zone_exits %>%
         mutate(Time = openxlsx::convertToDateTime(Time, origin = "1900-01-01")) %>%
         mutate(Time = format(as.POSIXct(Time), format = '%H:%M:%S')) %>%
         mutate(Time = as.character(Time)) %>%
-        mutate(Time = substr(Time, 1, 5)) %>% # Now a string format of MM:SS
-        left_join(team_lookup, by = c('home_team' = 'city')) %>%
-        left_join(team_lookup, by = c('away_team' = 'city'), suffix = c('_home', '_away')) %>%
-        mutate(home_team = abbreviation_home,
-               away_team = abbreviation_away)
+        mutate(Time = substr(Time, 1, 5)) #%>% # Now a string format of MM:SS
+      #   left_join(team_lookup, by = c('home_team' = 'city')) %>%
+      #   left_join(team_lookup, by = c('away_team' = 'city'), suffix = c('_home', '_away')) %>%
+      #   mutate(home_team = abbreviation_home,
+      #          away_team = abbreviation_away)
       
       games_zone_entries = rbind(games_zone_entries, game_file_zone_entries)
       games_zone_exits = rbind(games_zone_exits, game_file_zone_exits)

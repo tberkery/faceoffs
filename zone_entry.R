@@ -212,7 +212,7 @@ create_zone_exits = function(pbp, games_zone_exits) {
     mutate(game_seconds = full_periods_elapsed * 20 * 60 + minutes_elapsed_in_period * 60 + seconds_elapsed_in_minute) %>%
     select(-c(full_periods_elapsed, minutes_elapsed_in_period, seconds_elapsed_in_minute)) %>%
     mutate(game_date = substr(game_date, 1, 10),
-           event_type = ifelse(`Entry?` == 'Y', 'ZONE_EXIT', 'FAILED_ZONE_EXIT'),
+           event_type = 'ZONE_EXIT',
            event_description = paste0("Exit attempt by ",
                                       Attempt, " with pass target ", Pass.Target, " resulting in ", Result,
                                       " in ", Direction, " direction"),
@@ -271,7 +271,8 @@ create_zone_exits = function(pbp, games_zone_exits) {
     #         (Team.strength == 4 & Opp.strength == 5))
   
   zone_exits = zone_exits %>%
-    select(all_of(pbp_cols))
+    select(all_of(pbp_cols)) %>%
+    filter(event_description != "Exit attempt by NA with pass target NA resulting in NA in NA direction")
   
   return(zone_exits)
   
