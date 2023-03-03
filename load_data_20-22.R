@@ -395,7 +395,7 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
         mutate(Time = openxlsx::convertToDateTime(Time, origin = "1900-01-01")) %>%
         mutate(Time = format(as.POSIXct(Time), format = '%H:%M:%S')) %>%
         mutate(Time = as.character(Time)) %>%
-        mutate(Time = substr(Time, 1, 5)) %>% # Now a string format of MM:SS
+        mutate(Time = substr(Time, 1, 5)) #%>% # Now a string format of MM:SS
       #   left_join(team_lookup, by = c('home_team' = 'city')) %>%
       #   left_join(team_lookup, by = c('away_team' = 'city'), suffix = c('_home', '_away')) %>%
       #   mutate(home_team = abbreviation_home,
