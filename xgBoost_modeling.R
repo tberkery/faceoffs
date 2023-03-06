@@ -28,7 +28,7 @@ faceoffs_data = big_join %>%
            zone_time <= 250)
 
 same_games = Full2017 %>%
-  mutate(game_date = substr(game_date, 1, 10)) %>%
+  #mutate(game_date = substr(game_date, 1, 10)) %>%
   left_join(faceoffs_data,
             by = c('home_team', 'away_team', 'game_date')) %>%
   select(game_id) %>%
@@ -42,6 +42,12 @@ faceoffs_data_subset = faceoffs_data %>%
 faceoffs_with_xg = Full2017 %>%
   left_join(faceoffs_data_subset, by = c('season_x' = 'season', 'game_id_x' = 'game_id', 'game_seconds')) %>%
   inner_join(same_games, by = c('game_id_x' = 'game_id'))
+
+faceoffs_with_player_roles = faceoffs_with_xg %>%
+  select(game_id_x, season_x, game_seconds, event_type,  
+         Win_F1_Name, Win_F2_Name, Win_F3_Name, Win_D1_Name, Win_D2_Name, Win_G1_Name,
+         Lose_F1_Name, Lose_F2_Name, Lose_F3_Name, Lose_D1_Name, Lose_D2_Name, Lose_G1_Name,
+         Win_F1, Win_F2, Win_F3, Win_D1, Win_D2, Win_G1, Lose_F1, Lose_F2, Lose_F3, Lose_D1, Lose_D2, Lose_G1)
 
 faceoff_zone_info_subset = faceoffs_data %>%
   select(game_id, game_seconds, event_type, event_zone, zone_change_time, end_faceoff_attribution, zone_time)
@@ -60,6 +66,9 @@ xg_info = big_join %>%
   mutate(end_faceoff_attribution = na.locf(end_faceoff_attribution, fromLast = T, na.rm = F)) %>%
   mutate(winner_attributable_xg = ifelse(event_team == last_faceoff_winner & pred_goal > 0 & game_seconds > last_faceoff_time & game_seconds < end_faceoff_attribution, pred_goal, 0),
          loser_attributable_xg = ifelse(event_team != last_faceoff_winner & pred_goal > 0 & game_seconds > last_faceoff_time & game_seconds < end_faceoff_attribution, pred_goal, 0))
+
+xg_info_with_role_encoded = xg_info %>%
+  left_join(faceoffs_with_player_roles, by = c('game_id' = 'game_id_x', 'season' = 'season_x', 'game_seconds', 'event_type'))
 # now use pred_goal to get expected goals for both teams
 
 # ggplot(faceoffs_data, aes(x = zone_time)) +
