@@ -438,6 +438,8 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
   
   zone_entries = create_zone_entries(pbp_with_sznajder, games_zone_entries)
   zone_exits = create_zone_exits(pbp_with_sznajder, games_zone_exits)
+  zone_entries %>% write_csv("zone_entries_intermediate.csv")
+  zone_exits %>% write_csv("zone_exits_intermediate.csv")
   return(pbp_with_sznajder)
 }
 
@@ -510,4 +512,9 @@ reset = function() {
     mutate(clock_time = format(clock_time, '%H:%M:%S')) %>%
     mutate(clock_time = substr(clock_time, 1, 5))
   return(pbp)
+}
+
+load_season = function(start_year, end_year) {
+  eh_pbp = load_eh_pbp(start_year, end_year)
+  load_sznajder_game_reports(start_year, end_year, eh_pbp)
 }
