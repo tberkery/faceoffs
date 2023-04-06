@@ -7,11 +7,10 @@ eh_goalies  = read_csv('EH_skaters_gar.csv')
 # Testing change
 
 load_play_by_play = function(year) {
-  pbp = read_csv(paste0("faceoff_analytics_", year, ".csv"))
+  pbp = read_csv(paste0("data/merged_pbp_with_shots_2021-2022", ".csv"))
   return(pbp)
 }
-
-pbp = load_play_by_play(2018)
+pbp = load_play_by_play(2021)
 
 get_goalies_list = function(eh_goalies) {
   goalie_eh_ids = unique(eh_goalies$EH_ID)
@@ -43,22 +42,8 @@ condition_pbp_for_faceoffs = function(pbp) {
     filter(event_type == 'FAC' | lead(event_type, 1) == 'FAC') %>%
     select(game_date, season_x, home_team, away_team, game_id_x, game_period, game_seconds, clock_time,
            event_type, event_team, event_zone, event_player_1, event_player_2,
-           starts_with('home_on'), home_goalie, home_skaters, starts_with('away_on'),
-           faceoff_winning_team_xG_since_faceoff, faceoff_losing_team_xG_since_faceoff) %>%
-    mutate(faceoff_winner = event_team,
-           home_team_FA_xG = ifelse(event_team == home_team,
-                                    lead(faceoff_winning_team_xG_since_faceoff, 1), 
-                                    lead(faceoff_losing_team_xG_since_faceoff, 1)),
-           away_team_FA_xG = ifelse(event_team == away_team,
-                                    lead(faceoff_winning_team_xG_since_faceoff, 1),
-                                    lead(faceoff_losing_team_xG_since_faceoff, 1)),
-           faceoff_winning_team_xG_since_faceoff = ifelse(home_team == event_team,
-                                                          home_team_FA_xG,
-                                                          away_team_FA_xG),
-           faceoff_losing_team_xG_since_faceoff = ifelse(home_team != event_team,
-                                                         home_team_FA_xG,
-                                                         away_team_FA_xG)
-    ) %>%
+           starts_with('home_on'), home_goalie, home_skaters, starts_with('away_on')) %>%
+    mutate(faceoff_winner = event_team) %>%
     filter(event_type == 'FAC') %>%
     mutate(winning_team_on_1 = ifelse(event_team == home_team, home_on_1, away_on_1)) %>%
     mutate(winning_team_on_2 = ifelse(event_team == home_team, home_on_2, away_on_2)) %>%
@@ -400,26 +385,27 @@ parse_out_positions = function(pbp_subset) {
   for (row in 1:nrow(pbp_subset_classified_with_gar)) {
     print(paste0(row, " ", round(row/nrow(pbp_subset_classified_with_gar)),2))
     
-    pbp_subset_classified_with_gar[row,] -> Temp
+    pbp_subset_classified_with_gar[2,] -> Temp
     
-    Temp[162:168] = as.list(as.numeric(Temp[78:84][order(-Temp[78:84])]))
-    Temp[169:175] = as.list(as.character(Temp[106:112][order(-Temp[78:84])]))
+    offset = 4
     
-    Temp[176:182] = as.list(as.numeric(Temp[85:91][order(-Temp[85:91])]))
-    Temp[183:189] = as.list(as.character(Temp[113:119][order(-Temp[85:91])]))
+    Temp[(162-offset):(168-offset)] = as.list(as.numeric(Temp[(78-offset):(84-offset)][order(-Temp[(78-offset):(84-offset)])]))
+    Temp[(169-offset):(175-offset)] = as.list(as.character(Temp[(106-offset):(112-offset)][order(-Temp[(78-offset):(84-offset)])]))
     
-    Temp[190:196] = as.list(as.numeric(Temp[92:98][order(-Temp[92:98])]))
-    Temp[197:203] = as.list(as.character(Temp[116:122][order(-Temp[92:98])]))
+    Temp[(176-offset):(182-offset)] = as.list(as.numeric(Temp[(85-offset):(91-offset)][order(-Temp[(85-offset):(91-offset)])]))
+    Temp[(183-offset):(189-offset)] = as.list(as.character(Temp[(113-offset):(119-offset)][order(-Temp[(85-offset):(91-offset)])]))
     
-    Temp[204:210] = as.list(as.numeric(Temp[99:105][order(-Temp[99:105])]))
-    Temp[211:217] = as.list(as.character(Temp[127:133][order(-Temp[99:105])]))
+    Temp[(190-offset):(196-offset)] = as.list(as.numeric(Temp[(92-offset):(98-offset)][order(-Temp[(92-offset):(98-offset)])]))
+    Temp[(197-offset):(203-offset)] = as.list(as.character(Temp[(120-offset):(126-offset)][order(-Temp[(92-offset):(98-offset)])]))
     
-    Temp[218:224] = as.list(as.numeric(Temp[134:140][order(-Temp[134:140])]))
-    Temp[225:231] = as.list(as.character(Temp[148:154][order(-Temp[134:140])]))
+    Temp[(204-offset):(210-offset)] = as.list(as.numeric(Temp[(99-offset):(105-offset)][order(-Temp[(99-offset):(105-offset)])]))
+    Temp[(211-offset):(217-offset)] = as.list(as.character(Temp[(127-offset):(133-offset)][order(-Temp[(99-offset):(105-offset)])]))
     
-    Temp[232:238] = as.list(as.numeric(Temp[141:147][order(-Temp[141:147])]))
-    Temp[239:245] = as.list(as.character(Temp[155:161][order(-Temp[141:147])]))
+    Temp[(218-offset):(224-offset)] = as.list(as.numeric(Temp[(134-offset):(140-offset)][order(-Temp[(134-offset):(140-offset)])]))
+    Temp[(225-offset):(231-offset)] = as.list(as.character(Temp[(148-offset):(154-offset)][order(-Temp[(134-offset):(140-offset)])]))
     
+    Temp[(232-offset):(238-offset)] = as.list(as.numeric(Temp[(141-offset):(147-offset)][order(-Temp[(141-offset):(147-offset)])]))
+    Temp[(239-offset):(245-offset)] = as.list(as.character(Temp[(155-offset):(161-offset)][order(-Temp[(141-offset):(147-offset)])]))
     
     if(row == 1){
       Play = Temp
@@ -445,4 +431,4 @@ parse_out_positions = function(pbp_subset) {
 
 ps = parse_out_positions(pbp_subset)
 
-write_csv(ps, 'Full2018_updated_partial.csv')
+write_csv(ps, 'Full2021.csv')
