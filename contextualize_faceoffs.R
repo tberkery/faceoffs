@@ -7,10 +7,10 @@ eh_goalies  = read_csv('EH_skaters_gar.csv')
 # Testing change
 
 load_play_by_play = function(year) {
-  pbp = read_csv(paste0("data/merged_pbp_with_shots_2021-2022", ".csv"))
+  pbp = read_csv(paste0("merged_pbp_with_shots_2020-2021", ".csv"))
   return(pbp)
 }
-pbp = load_play_by_play(2021)
+pbp = load_play_by_play(2020)
 
 get_goalies_list = function(eh_goalies) {
   goalie_eh_ids = unique(eh_goalies$EH_ID)
@@ -431,4 +431,4 @@ parse_out_positions = function(pbp_subset) {
 
 ps = parse_out_positions(pbp_subset)
 
-write_csv(ps, 'Full2021.csv')
+write_csv(ps, 'Full2020_fixed.csv')
