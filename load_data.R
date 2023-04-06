@@ -6,7 +6,7 @@ source("link.R")
 source("zone_entry.R")
 
 start_year = 2017
-end_year = 2021
+end_year = 2018
 
 load_eh_pbp = function(start_year, end_year) {
   next_year = start_year + 1
@@ -20,7 +20,7 @@ load_eh_pbp = function(start_year, end_year) {
     pbp_year = read_csv(paste0("EH_pbp_query_", year, next_year, ".csv"))
     pbp_year_pp = pbp_year %>%
       mutate(is_pp = (game_score_state == '5v4' |
-                        game_score_state == '4v5')) %>%
+                        game_score_state == '4v5')) #%>%
       #filter(is_pp == TRUE)
     pbp = rbind(pbp, pbp_year_pp)
   }
@@ -134,13 +134,14 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
     select(season_game_index, home_team, away_team) %>%
     distinct(season_game_index, home_team, away_team, .keep_all = TRUE)
   
-  pbp_with_sznajder = create_zone_entries(pbp_with_sznajder, games_zone_entries)
-  pbp_with_sznajder = pbp_with_sznajder %>%
-    arrange(game_id, game_seconds)
-  pbp_with_sznajder = create_zone_exits(pbp_with_sznajder, games_zone_exits)
-  pbp_with_sznajder = pbp_with_sznajder %>%
-    arrange(game_id, game_seconds)
-  return(pbp_with_sznajder)
+  zone_entries = create_zone_entries(pbp_with_sznajder, games_zone_entries)
+  zone_exits = create_zone_exits(pbp_with_sznajder, games_zone_exits)
+  # pbp_with_sznajder = pbp_with_sznajder %>%
+  #   arrange(game_id, game_seconds)
+  # pbp_with_sznajder = create_zone_exits(pbp_with_sznajder, games_zone_exits)
+  # pbp_with_sznajder = pbp_with_sznajder %>%
+  #   arrange(game_id, game_seconds)
+  # return(pbp_with_sznajder)
 }
 
 filter_games = function(pbp_with_sznajder) {
@@ -204,6 +205,8 @@ filter_games = function(pbp_with_sznajder) {
   #   arrange(game_date, home_team, away_team, game_seconds)
   print(colnames(pbp_with_zone_changes))
   print(nrow(pbp_with_zone_changes))
+  zone_entries %>% write_csv("zone_entries_current.csv")
+  zone_exits %>% write_csv("zone_exits_current.csv")
 }
 
 reset = function() {

@@ -22,7 +22,9 @@ create_zone_entries = function(pbp, games) {
     mutate(game_date = substr(effective_game_date, 1, 10))
   zone_entries = games %>%
     rename(game_period = Period,
-           clock_time = Time)
+           clock_time = Time) %>%
+    filter(game_period == '1' | game_period == '2' | game_period == '3') %>% # Remark: will omit overtime(s)/shootout
+    mutate(game_period = as.numeric(game_period))
   zone_entries = zone_entries %>%
     mutate(full_periods_elapsed = ifelse(game_period == 1, 0, game_period - 1)) %>%
     mutate(minutes_elapsed_in_period = 20 - 1 - as.numeric(substr(clock_time, 1, 2))) %>%
@@ -98,29 +100,29 @@ create_zone_entries = function(pbp, games) {
   zone_entries = zone_entries %>%
     select(all_of(pbp_cols))
   
-  pbp_with_zone_entries = pbp %>%
-    mutate(game_date = substr(game_date, 1, 10)) %>%
-    rbind(zone_entries)
+  #pbp_with_zone_entries = pbp %>%
+  #  mutate(game_date = substr(game_date, 1, 10)) %>%
+  #  rbind(zone_entries)
   
-  pbp_with_zone_entries = pbp_with_zone_entries %>%
-    mutate(game_id_numeric = as.double(game_id))
-  pbp_with_zone_entries = pbp_with_zone_entries %>%
-    mutate(game_id = fill(game_id_numeric)) %>% # Note that a Sznajder event is never the first chronological event of a game
-    arrange(game_id, game_seconds) %>%
-    select(-game_id_numeric)
+  #pbp_with_zone_entries = pbp_with_zone_entries %>%
+  #  mutate(game_id_numeric = as.double(game_id))
+  #pbp_with_zone_entries = pbp_with_zone_entries %>%
+  #  mutate(game_id = fill(game_id_numeric)) %>% # Note that a Sznajder event is never the first chronological event of a game
+  #  arrange(game_id, game_seconds) %>%
+  #  select(-game_id_numeric)
   
-  mutate_fields = c('players_on', 'players_off', 'home_on_1', 'home_on_2', 'home_on_3',
-                    'home_on_4', 'home_on_5', 'home_on_6', 'home_on_7', 'away_on_1', 
-                    'away_on_2', 'away_on_3', 'away_on_4', 'away_on_5', 'away_on_6',
-                    'away_on_7', 'home_goalie', 'away_goalie', 'home_team', 'away_team',
-                    'home_skaters', 'away_skaters', 'home_score', 'away_score',
-                    'game_score_state', 'game_strength_state', 'home_zone',
-                    'shift_index', 'season', 'game_id', 'session', 'event_index',
-                    'game_strength_state', 'event_team')
-  
-  pbp_with_zone_entries = pbp_with_zone_entries %>%
-    fill(is_pp) %>%
-    mutate(across(all_of(mutate_fields), ~ifelse(event_type == 'ZONE_ENTRY', lag(., 1), .)))
+  # mutate_fields = c('players_on', 'players_off', 'home_on_1', 'home_on_2', 'home_on_3',
+  #                   'home_on_4', 'home_on_5', 'home_on_6', 'home_on_7', 'away_on_1', 
+  #                   'away_on_2', 'away_on_3', 'away_on_4', 'away_on_5', 'away_on_6',
+  #                   'away_on_7', 'home_goalie', 'away_goalie', 'home_team', 'away_team',
+  #                   'home_skaters', 'away_skaters', 'home_score', 'away_score',
+  #                   'game_score_state', 'game_strength_state', 'home_zone',
+  #                   'shift_index', 'season', 'game_id', 'session', 'event_index',
+  #                   'game_strength_state', 'event_team')
+  # 
+  # pbp_with_zone_entries = pbp_with_zone_entries %>%
+  #   fill(is_pp) %>%
+  #   mutate(across(all_of(mutate_fields), ~ifelse(event_type == 'ZONE_ENTRY', lag(., 1), .)))
 
   # pbp_with_zone_entries = pbp_with_zone_entries %>%
   #   #mutate(across(all_of(vecs), ~ifelse(is.na(.), lag(., 1), .)))
@@ -166,7 +168,8 @@ create_zone_entries = function(pbp, games) {
   #     game_strength_state = ifelse(event_type == 'ZONE_ENTRY', lag(game_strength_state, 1), game_strength_state),
   #     event_team = ifelse(event_type == 'ZONE_ENTRY', substr(event_player_1, -3, -1), event_player_1) # inner ifelse logic handles single digit numbers (e.g. 8PIT vs. 18PIT)
   #   )
-  return(pbp_with_zone_entries)
+  return(zone_entries)
+  #return(pbp_with_zone_entries)
 }
 
 create_zone_exits = function(pbp, games_zone_exits) {
@@ -190,7 +193,9 @@ create_zone_exits = function(pbp, games_zone_exits) {
     mutate(game_date = substr(effective_game_date, 1, 10))
   zone_exits = games_zone_exits %>%
     rename(game_period = Period,
-           clock_time = Time)
+           clock_time = Time) %>%
+    filter(game_period == '1' | game_period == '2' | game_period == '3') %>% # Remark: will omit overtime(s)/shootout
+    mutate(game_period = as.numeric(game_period))
   zone_exits = zone_exits %>%
     mutate(full_periods_elapsed = ifelse(game_period == 1, 0, game_period - 1)) %>%
     mutate(minutes_elapsed_in_period = 20 - 1 - as.numeric(substr(clock_time, 1, 2))) %>%
@@ -207,7 +212,7 @@ create_zone_exits = function(pbp, games_zone_exits) {
     mutate(game_seconds = full_periods_elapsed * 20 * 60 + minutes_elapsed_in_period * 60 + seconds_elapsed_in_minute) %>%
     select(-c(full_periods_elapsed, minutes_elapsed_in_period, seconds_elapsed_in_minute)) %>%
     mutate(game_date = substr(game_date, 1, 10),
-           event_type = ifelse(`Entry?` == 'Y', 'ZONE_EXIT', 'FAILED_ZONE_EXIT'),
+           event_type = 'ZONE_EXIT',
            event_description = paste0("Exit attempt by ",
                                       Attempt, " with pass target ", Pass.Target, " resulting in ", Result,
                                       " in ", Direction, " direction"),
@@ -266,30 +271,33 @@ create_zone_exits = function(pbp, games_zone_exits) {
     #         (Team.strength == 4 & Opp.strength == 5))
   
   zone_exits = zone_exits %>%
-    select(all_of(pbp_cols))
+    select(all_of(pbp_cols)) %>%
+    filter(event_description != "Exit attempt by NA with pass target NA resulting in NA in NA direction")
+  
+  return(zone_exits)
   
   #pbp_pp_start_and_end = pbp %>%
   #  filter(is_pp == TRUE & (lag(is_pp, 1) == FALSE | lead(is_pp, 1) == FALSE))
   
-  pbp_with_zone_exits = pbp %>%
-    mutate(game_date = substr(game_date, 1, 10)) %>%
-    rbind(zone_exits)
-  
-  pbp_with_zone_exits = pbp_with_zone_exits %>%
-    arrange(game_id, game_seconds)
-  
-  mutate_fields = c('players_on', 'players_off', 'home_on_1', 'home_on_2', 'home_on_3',
-                    'home_on_4', 'home_on_5', 'home_on_6', 'home_on_7', 'away_on_1', 
-                    'away_on_2', 'away_on_3', 'away_on_4', 'away_on_5', 'away_on_6',
-                    'away_on_7', 'home_goalie', 'away_goalie', 'home_team', 'away_team',
-                    'home_skaters', 'away_skaters', 'home_score', 'away_score',
-                    'game_score_state', 'game_strength_state', 'home_zone',
-                    'shift_index', 'season', 'game_id', 'session', 'event_index',
-                    'game_strength_state', 'event_team')
-  
-  pbp_with_zone_exits = pbp_with_zone_exits %>%
-    mutate(across(all_of(mutate_fields), ~ifelse(event_type == 'ZONE_EXIT', lag(., 1), .))) %>%
-    fill(is_pp)
-  
-  return(pbp_with_zone_exits)
+  # pbp_with_zone_exits = pbp %>%
+  #   mutate(game_date = substr(game_date, 1, 10)) %>%
+  #   rbind(zone_exits)
+  # 
+  # pbp_with_zone_exits = pbp_with_zone_exits %>%
+  #   arrange(game_id, game_seconds)
+  # 
+  # mutate_fields = c('players_on', 'players_off', 'home_on_1', 'home_on_2', 'home_on_3',
+  #                   'home_on_4', 'home_on_5', 'home_on_6', 'home_on_7', 'away_on_1', 
+  #                   'away_on_2', 'away_on_3', 'away_on_4', 'away_on_5', 'away_on_6',
+  #                   'away_on_7', 'home_goalie', 'away_goalie', 'home_team', 'away_team',
+  #                   'home_skaters', 'away_skaters', 'home_score', 'away_score',
+  #                   'game_score_state', 'game_strength_state', 'home_zone',
+  #                   'shift_index', 'season', 'game_id', 'session', 'event_index',
+  #                   'game_strength_state', 'event_team')
+  # 
+  # pbp_with_zone_exits = pbp_with_zone_exits %>%
+  #   mutate(across(all_of(mutate_fields), ~ifelse(event_type == 'ZONE_EXIT', lag(., 1), .))) %>%
+  #   fill(is_pp)
+  # 
+  # return(pbp_with_zone_exits)
 }
