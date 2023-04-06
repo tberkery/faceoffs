@@ -4,15 +4,13 @@ library(tidyr)
 library(stringr)
 skaters = read_csv('EH_goalies_gar.csv')
 eh_goalies  = read_csv('EH_skaters_gar.csv')
-
 # Testing change
 
 load_play_by_play = function(year) {
-  pbp = read_csv(paste0("faceoff_analytics_", year, ".csv"))
+  pbp = read_csv(paste0("merged_pbp_with_shots_2020-2021", ".csv"))
   return(pbp)
 }
-
-pbp = load_play_by_play(2017)
+pbp = load_play_by_play(2020)
 
 get_goalies_list = function(eh_goalies) {
   goalie_eh_ids = unique(eh_goalies$EH_ID)
@@ -42,24 +40,10 @@ condition_pbp_for_faceoffs = function(pbp) {
   pbp_subset = pbp %>%
     filter(event_type != 'CHANGE') %>%
     filter(event_type == 'FAC' | lead(event_type, 1) == 'FAC') %>%
-    select(game_date, season_x, home_team, away_team, 
+    select(game_date, season_x, home_team, away_team, game_id_x, game_period, game_seconds, clock_time,
            event_type, event_team, event_zone, event_player_1, event_player_2,
-           starts_with('home_on'), home_goalie, home_skaters, starts_with('away_on'),
-           faceoff_winning_team_xG_since_faceoff, faceoff_losing_team_xG_since_faceoff) %>%
-    mutate(faceoff_winner = event_team,
-           home_team_FA_xG = ifelse(event_team == home_team,
-                                    lead(faceoff_winning_team_xG_since_faceoff, 1), 
-                                    lead(faceoff_losing_team_xG_since_faceoff, 1)),
-           away_team_FA_xG = ifelse(event_team == away_team,
-                                    lead(faceoff_winning_team_xG_since_faceoff, 1),
-                                    lead(faceoff_losing_team_xG_since_faceoff, 1)),
-           faceoff_winning_team_xG_since_faceoff = ifelse(home_team == event_team,
-                                                          home_team_FA_xG,
-                                                          away_team_FA_xG),
-           faceoff_losing_team_xG_since_faceoff = ifelse(home_team != event_team,
-                                                         home_team_FA_xG,
-                                                         away_team_FA_xG)
-    ) %>%
+           starts_with('home_on'), home_goalie, home_skaters, starts_with('away_on')) %>%
+    mutate(faceoff_winner = event_team) %>%
     filter(event_type == 'FAC') %>%
     mutate(winning_team_on_1 = ifelse(event_team == home_team, home_on_1, away_on_1)) %>%
     mutate(winning_team_on_2 = ifelse(event_team == home_team, home_on_2, away_on_2)) %>%
@@ -139,53 +123,53 @@ parse_out_positions = function(pbp_subset) {
       winning_team_on_7 %in% goalies ~ 'G',
       TRUE ~ 'Unknown'
     )) %>% 
-      mutate(losing_team_on_1_pos = case_when(
-        losing_team_on_1 %in% forwards ~ 'F',
-        losing_team_on_1 %in% defensemen ~ 'D',
-        losing_team_on_1 %in% goalies ~ 'G',
-        TRUE ~ 'Unknown'
-      )) %>%
-      mutate(losing_team_on_2_pos = case_when(
-        losing_team_on_2 %in% forwards ~ 'F',
-        losing_team_on_2 %in% defensemen ~ 'D',
-        losing_team_on_2 %in% goalies ~ 'G',
-        TRUE ~ 'Unknown'
-      )) %>%
-      mutate(losing_team_on_3_pos = case_when(
-        losing_team_on_3 %in% forwards ~ 'F',
-        losing_team_on_3 %in% defensemen ~ 'D',
-        losing_team_on_3 %in% goalies ~ 'G',
-        TRUE ~ 'Unknown'
-      )) %>%
-      mutate(losing_team_on_4_pos = case_when(
-        losing_team_on_4 %in% forwards ~ 'F',
-        losing_team_on_4 %in% defensemen ~ 'D',
-        losing_team_on_4 %in% goalies ~ 'G',
-        TRUE ~ 'Unknown'
-      )) %>%
-      mutate(losing_team_on_5_pos = case_when(
-        losing_team_on_5 %in% forwards ~ 'F',
-        losing_team_on_5 %in% defensemen ~ 'D',
-        losing_team_on_5 %in% goalies ~ 'G',
-        TRUE ~ 'Unknown'
-      )) %>%
-      mutate(losing_team_on_6_pos = case_when(
-        losing_team_on_6 %in% forwards ~ 'F',
-        losing_team_on_6 %in% defensemen ~ 'D',
-        losing_team_on_6 %in% goalies ~ 'G',
-        TRUE ~ 'Unknown'
-      )) %>%
-      mutate(losing_team_on_7_pos = case_when(
-        losing_team_on_7 %in% forwards ~ 'F',
-        losing_team_on_7 %in% defensemen ~ 'D',
-        losing_team_on_7 %in% goalies ~ 'G',
-        TRUE ~ 'Unknown'
-      )
+    mutate(losing_team_on_1_pos = case_when(
+      losing_team_on_1 %in% forwards ~ 'F',
+      losing_team_on_1 %in% defensemen ~ 'D',
+      losing_team_on_1 %in% goalies ~ 'G',
+      TRUE ~ 'Unknown'
+    )) %>%
+    mutate(losing_team_on_2_pos = case_when(
+      losing_team_on_2 %in% forwards ~ 'F',
+      losing_team_on_2 %in% defensemen ~ 'D',
+      losing_team_on_2 %in% goalies ~ 'G',
+      TRUE ~ 'Unknown'
+    )) %>%
+    mutate(losing_team_on_3_pos = case_when(
+      losing_team_on_3 %in% forwards ~ 'F',
+      losing_team_on_3 %in% defensemen ~ 'D',
+      losing_team_on_3 %in% goalies ~ 'G',
+      TRUE ~ 'Unknown'
+    )) %>%
+    mutate(losing_team_on_4_pos = case_when(
+      losing_team_on_4 %in% forwards ~ 'F',
+      losing_team_on_4 %in% defensemen ~ 'D',
+      losing_team_on_4 %in% goalies ~ 'G',
+      TRUE ~ 'Unknown'
+    )) %>%
+    mutate(losing_team_on_5_pos = case_when(
+      losing_team_on_5 %in% forwards ~ 'F',
+      losing_team_on_5 %in% defensemen ~ 'D',
+      losing_team_on_5 %in% goalies ~ 'G',
+      TRUE ~ 'Unknown'
+    )) %>%
+    mutate(losing_team_on_6_pos = case_when(
+      losing_team_on_6 %in% forwards ~ 'F',
+      losing_team_on_6 %in% defensemen ~ 'D',
+      losing_team_on_6 %in% goalies ~ 'G',
+      TRUE ~ 'Unknown'
+    )) %>%
+    mutate(losing_team_on_7_pos = case_when(
+      losing_team_on_7 %in% forwards ~ 'F',
+      losing_team_on_7 %in% defensemen ~ 'D',
+      losing_team_on_7 %in% goalies ~ 'G',
+      TRUE ~ 'Unknown'
+    )
     )
   
   gar_list = get_gar_list()
   
-  pbp_subset_classified_with_gar = pbp_subset_classified %>%
+  pbp_subset_classified_with_gar = pbp_subset_classified  %>%
     left_join(gar_list, by = c('winning_team_on_1' = 'EH_ID', 'Season'), suffix = c('', '_winning_team_on_1')) %>%
     rename(winning_team_on_1_GAR = GAR) %>%
     left_join(gar_list, by = c('winning_team_on_2' = 'EH_ID', 'Season'), suffix = c('', '_winning_team_on_2')) %>%
@@ -396,31 +380,32 @@ parse_out_positions = function(pbp_subset) {
            Lose_G5_Name = NA,
            Lose_G6_Name = NA,
            Lose_G7_Name = NA
-           )
+    )
   
   for (row in 1:nrow(pbp_subset_classified_with_gar)) {
     print(paste0(row, " ", round(row/nrow(pbp_subset_classified_with_gar)),2))
     
-    pbp_subset_classified_with_gar[row,] -> Temp
+    pbp_subset_classified_with_gar[2,] -> Temp
     
-    Temp[158:164] = as.list(as.numeric(Temp[74:80][order(-Temp[74:80])]))
-    Temp[165:171] = as.list(as.character(Temp[102:108][order(-Temp[74:80])]))
+    offset = 4
     
-    Temp[172:178] = as.list(as.numeric(Temp[81:87][order(-Temp[81:87])]))
-    Temp[179:185] = as.list(as.character(Temp[109:115][order(-Temp[81:87])]))
+    Temp[(162-offset):(168-offset)] = as.list(as.numeric(Temp[(78-offset):(84-offset)][order(-Temp[(78-offset):(84-offset)])]))
+    Temp[(169-offset):(175-offset)] = as.list(as.character(Temp[(106-offset):(112-offset)][order(-Temp[(78-offset):(84-offset)])]))
     
-    Temp[186:192] = as.list(as.numeric(Temp[88:94][order(-Temp[88:94])]))
-    Temp[193:199] = as.list(as.character(Temp[116:122][order(-Temp[88:94])]))
+    Temp[(176-offset):(182-offset)] = as.list(as.numeric(Temp[(85-offset):(91-offset)][order(-Temp[(85-offset):(91-offset)])]))
+    Temp[(183-offset):(189-offset)] = as.list(as.character(Temp[(113-offset):(119-offset)][order(-Temp[(85-offset):(91-offset)])]))
     
-    Temp[200:206] = as.list(as.numeric(Temp[95:101][order(-Temp[95:101])]))
-    Temp[207:213] = as.list(as.character(Temp[123:129][order(-Temp[95:101])]))
+    Temp[(190-offset):(196-offset)] = as.list(as.numeric(Temp[(92-offset):(98-offset)][order(-Temp[(92-offset):(98-offset)])]))
+    Temp[(197-offset):(203-offset)] = as.list(as.character(Temp[(120-offset):(126-offset)][order(-Temp[(92-offset):(98-offset)])]))
     
-    Temp[214:220] = as.list(as.numeric(Temp[130:136][order(-Temp[130:136])]))
-    Temp[221:227] = as.list(as.character(Temp[144:150][order(-Temp[130:136])]))
+    Temp[(204-offset):(210-offset)] = as.list(as.numeric(Temp[(99-offset):(105-offset)][order(-Temp[(99-offset):(105-offset)])]))
+    Temp[(211-offset):(217-offset)] = as.list(as.character(Temp[(127-offset):(133-offset)][order(-Temp[(99-offset):(105-offset)])]))
     
-    Temp[228:234] = as.list(as.numeric(Temp[137:143][order(-Temp[137:143])]))
-    Temp[235:241] = as.list(as.character(Temp[151:157][order(-Temp[137:143])]))
+    Temp[(218-offset):(224-offset)] = as.list(as.numeric(Temp[(134-offset):(140-offset)][order(-Temp[(134-offset):(140-offset)])]))
+    Temp[(225-offset):(231-offset)] = as.list(as.character(Temp[(148-offset):(154-offset)][order(-Temp[(134-offset):(140-offset)])]))
     
+    Temp[(232-offset):(238-offset)] = as.list(as.numeric(Temp[(141-offset):(147-offset)][order(-Temp[(141-offset):(147-offset)])]))
+    Temp[(239-offset):(245-offset)] = as.list(as.character(Temp[(155-offset):(161-offset)][order(-Temp[(141-offset):(147-offset)])]))
     
     if(row == 1){
       Play = Temp
@@ -446,4 +431,4 @@ parse_out_positions = function(pbp_subset) {
 
 ps = parse_out_positions(pbp_subset)
 
-write_csv(ps, 'Full2017.csv')
+write_csv(ps, 'Full2020_fixed.csv')
