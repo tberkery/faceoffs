@@ -27,6 +27,9 @@ condition = function(big_join) {
     filter((event_type == 'FAC' & event_zone != 'Neu') & 
              #Looked like reasonable cutoff from density plot
              zone_time <= 250)
+  for (year in years) {
+    
+  }
   
   same_games = Full2017 %>%
     mutate(game_date = substr(game_date, 1, 10)) %>%

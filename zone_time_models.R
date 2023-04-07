@@ -12,7 +12,7 @@ faceoffs_subset = faceoffs %>%
          Win_F1, Win_F2, Win_F3, Win_D1, Win_D2, Win_G1, Lose_F1, Lose_F2, Lose_F3, Lose_D1, Lose_D2, Lose_G1, zone_time) %>%
   mutate(faceoff_winning_center = ifelse(faceoff_winner == home_team, event_player_2, event_player_1)) %>%
   mutate(faceoff_winner_zone = ifelse(faceoff_winner == event_team, event_zone, ifelse(event_zone == "Off", "Def", "Off"))) %>%
-  filter(faceoff_winner_zone == 'Off') %>%
+  filter(faceoff_winner_zone == 'Def') %>%
   select(-home_team, -away_team, -event_team, -event_zone, -faceoff_winner_zone, -event_player_1, -event_player_2, -faceoff_winner, -faceoff_winning_center)
 
 faceoffs_subset <- replace(faceoffs_subset, is.na(faceoffs_subset), 0)
