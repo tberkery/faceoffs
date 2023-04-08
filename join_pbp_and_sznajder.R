@@ -51,7 +51,7 @@ condition = function(big_join, years) {
   
   faceoffs_data_subset = faceoffs_data %>%
     select(season, game_id, game_seconds, zone_change_time, end_faceoff_attribution, zone_time)
-  faceoffs_with_xg = Full2017 %>%
+  faceoffs_with_xg = full_combined %>%
     left_join(faceoffs_data_subset, by = c('season_x' = 'season', 'game_id_x' = 'game_id', 'game_seconds')) %>%
     inner_join(same_games, by = c('game_id_x' = 'game_id'))
   
@@ -82,6 +82,24 @@ condition = function(big_join, years) {
            loser_xg = lag(loser_attributable_xg))
   
   faceoffs_full_new = faceoffs_with_player_roles %>%
-    inner_join(xg_info, by = c('game_id_x' = 'game_id', 'season_x' = 'season', 'game_seconds', 'event_type'))
+    left_join(xg_info, by = c('game_id_x' = 'game_id', 'season_x' = 'season', 'game_seconds', 'event_type'))
   return(faceoffs_full)
+}
+
+get_role_encoded_stats = function(pbp_with_role, mega_dict) {
+  mega_dict = mega_dict %>%
+    mutate(season = paste0("20", substr(Season, 1, 2), "20", substr(Season, 4, 5)))
+  pbp_with_role_and_stats = pbp_with_role %>%
+    mutate(season_x = paste(season_x)) %>%
+    left_join(mega_dict, by = c('Win_F1_Name' = 'EH_ID', 'season_x' = 'season')) %>%
+    left_join(mega_dict, by = c('Win_F2_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('_Win_F1', '_Win_F2')) %>%
+    left_join(mega_dict, by = c('Win_F3_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('', '_Win_F3')) %>%
+    left_join(mega_dict, by = c('Win_D1_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('', '_Win_D1')) %>%
+    left_join(mega_dict, by = c('Win_D2_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('', '_Win_D2')) %>%
+    left_join(mega_dict, by = c('Lose_F1_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('', '_Lose_F1')) %>%
+    left_join(mega_dict, by = c('Lose_F2_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('', '_Lose_F2')) %>%
+    left_join(mega_dict, by = c('Lose_F3_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('', '_Lose_F3')) %>%
+    left_join(mega_dict, by = c('Lose_D1_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('', '_Lose_D1')) %>%
+    left_join(mega_dict, by = c('Lose_D2_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('', '_Lose_D2'))
+  return(pbp_with_role_and_stats)
 }

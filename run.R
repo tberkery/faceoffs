@@ -17,4 +17,9 @@ load_sznajder = function() {
   all_zone_exits = rbind(zone_exits_17_18_19, zone_exits_20_21_22)
   source("Join_Entries.R")
   big_join = join_entries(2017, 2022, all_zone_entries, all_zone_exits)
+  source("join_pbp_and_sznajder.R")
+  pbp_with_role = condition(big_join, c(2017, 2018, 2020, 2021))
+  mega_dict = assemble_stats()
+  dataset = get_role_encoded_stats(pbp_with_role, mega_dict)
+  dataset %>% write_csv("faceoffs_dataset.csv")
 }
