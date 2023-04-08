@@ -4,7 +4,7 @@ library(tidyverse)
 
 year = 2017
 start_year = year
-end_year = year + 1
+end_year = 2022
 join_entries = function(start_year, end_year, zone_entires, zone_exits) {
   #Enter Zone Entries File Name Here
   #zone_entries_sample <- read_csv("zone_entries_sample2.csv") %>%
