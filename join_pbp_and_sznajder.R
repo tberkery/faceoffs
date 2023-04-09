@@ -103,3 +103,9 @@ get_role_encoded_stats = function(pbp_with_role, mega_dict) {
     left_join(mega_dict, by = c('Lose_D2_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('', '_Lose_D2'))
   return(pbp_with_role_and_stats)
 }
+
+subset_relevant_cols = function(pbp_with_role_and_stats) {
+  remove_cols = c('session', 'game_date', 'event_description', 'event_detail', 'event_player_3', 'event_length', 'num_on', 'num_off', 'players_on', 'players_off', 
+                  'home_on_1', 'home_on_2', 'home_on_3', 'home_on_4', 'home_on_5', 'home_on_6','home_on_7', 'away_on_1', 'away_on_2', 'away_on_3', 'away_on_4', 
+                  'away_on_5', 'away_on_6','away_on_7', 'home_goalie', 'away_goalie', 'pbp_distance', 'pred_goal', 'is_pp', 'event_zone.y', 'zone_change_time', 'zone_time', )
+}
