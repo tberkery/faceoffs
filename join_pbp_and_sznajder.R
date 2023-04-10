@@ -93,19 +93,28 @@ get_role_encoded_stats = function(pbp_with_role, mega_dict) {
     mutate(season_x = paste(season_x)) %>%
     left_join(mega_dict, by = c('Win_F1_Name' = 'EH_ID', 'season_x' = 'season')) %>%
     left_join(mega_dict, by = c('Win_F2_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('_Win_F1', '_Win_F2')) %>%
-    left_join(mega_dict, by = c('Win_F3_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('', '_Win_F3')) %>%
-    left_join(mega_dict, by = c('Win_D1_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('', '_Win_D1')) %>%
-    left_join(mega_dict, by = c('Win_D2_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('', '_Win_D2')) %>%
-    left_join(mega_dict, by = c('Lose_F1_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('', '_Lose_F1')) %>%
-    left_join(mega_dict, by = c('Lose_F2_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('', '_Lose_F2')) %>%
-    left_join(mega_dict, by = c('Lose_F3_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('', '_Lose_F3')) %>%
-    left_join(mega_dict, by = c('Lose_D1_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('', '_Lose_D1')) %>%
-    left_join(mega_dict, by = c('Lose_D2_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('', '_Lose_D2'))
+    left_join(mega_dict, by = c('Win_F3_Name' = 'EH_ID', 'season_x' = 'season')) %>%
+    left_join(mega_dict, by = c('Win_D1_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('_Win_F3', '_Win_D1')) %>%
+    left_join(mega_dict, by = c('Win_D2_Name' = 'EH_ID', 'season_x' = 'season')) %>%
+    left_join(mega_dict, by = c('Lose_F1_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('_Win_D2', '_Lose_F1')) %>%
+    left_join(mega_dict, by = c('Lose_F2_Name' = 'EH_ID', 'season_x' = 'season')) %>%
+    left_join(mega_dict, by = c('Lose_F3_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('_Lose_F2', '_Lose_F3')) %>%
+    left_join(mega_dict, by = c('Lose_D1_Name' = 'EH_ID', 'season_x' = 'season')) %>%
+    left_join(mega_dict, by = c('Lose_D2_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('_Lose_D1', '_Lose_D2'))
   return(pbp_with_role_and_stats)
 }
 
 subset_relevant_cols = function(pbp_with_role_and_stats) {
   remove_cols = c('session', 'game_date', 'event_description', 'event_detail', 'event_player_3', 'event_length', 'num_on', 'num_off', 'players_on', 'players_off', 
                   'home_on_1', 'home_on_2', 'home_on_3', 'home_on_4', 'home_on_5', 'home_on_6','home_on_7', 'away_on_1', 'away_on_2', 'away_on_3', 'away_on_4', 
-                  'away_on_5', 'away_on_6','away_on_7', 'home_goalie', 'away_goalie', 'pbp_distance', 'pred_goal', 'is_pp', 'event_zone.y', 'zone_change_time', 'zone_time', )
+                  'away_on_5', 'away_on_6','away_on_7', 'home_goalie', 'away_goalie', 'pbp_distance', 'pred_goal', 'is_pp', 'event_zone.y', 'zone_change_time', 'zone_time')
+  data = pbp_with_role_and_stats %>%
+    select(-all_of(remove_cols)) %>%
+    mutate(game_id = game_id_x, season = season_x, event_zone = event_zone.x) %>%
+    filter(game_strength_state == '5v5')
+  return(data)
+}
+
+impute_missing_values = function(data) {
+  
 }
