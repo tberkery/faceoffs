@@ -83,7 +83,7 @@ condition = function(big_join, years) {
   
   faceoffs_full_new = faceoffs_with_player_roles %>%
     left_join(xg_info, by = c('game_id_x' = 'game_id', 'season_x' = 'season', 'game_seconds', 'event_type'))
-  return(faceoffs_full)
+  return(faceoffs_full_new) # previously returned faceoffs_full
 }
 
 get_role_encoded_stats = function(pbp_with_role, mega_dict) {

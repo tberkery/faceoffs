@@ -410,10 +410,12 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
       #   mutate(home_team = abbreviation_home,
       #          away_team = abbreviation_away)
       
+      #if (colnames(games_zone_entries) == colnames(game_file_zone_entries) && 
+      #    colnames(games_zone_exits) == colnames(game_file_zone_exits)) {
+      print(paste0(season_game_index, " ", away_team, " at ", home_team))
       games_zone_entries = rbind(games_zone_entries, game_file_zone_entries)
       games_zone_exits = rbind(games_zone_exits, game_file_zone_exits)
-      print(paste0(season_game_index, " ", away_team, " at ", home_team))
-      }
+    }
   }
   
   pbp_with_sznajder = pbp %>%

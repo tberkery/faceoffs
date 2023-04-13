@@ -207,7 +207,7 @@ filter_games = function(pbp_with_sznajder) {
   #   arrange(game_date, home_team, away_team, game_seconds)
   print(colnames(pbp_with_zone_changes))
   print(nrow(pbp_with_zone_changes))
-  zone_entries %>% write_csv("zone_exits_intermediate")
+  zone_entries %>% write_csv("zone_exits_intermediate.csv")
   zone_exits %>% write_csv("zone_entries_intermediate.csv")
 }
 
