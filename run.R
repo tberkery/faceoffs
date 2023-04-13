@@ -22,7 +22,7 @@ load_sznajder = function() {
   pbp_with_role = condition(big_join, c(2017, 2018, 2020, 2021))
   mega_dict = assemble_stats()
   dataset = get_role_encoded_stats(pbp_with_role, mega_dict)
-  dataset %>% write_csv("new_dataset_update.csv")
+  dataset %>% write_csv("new_dataset_updated.csv")
   dataset = subset_relevant_cols(dataset)
 }
 
