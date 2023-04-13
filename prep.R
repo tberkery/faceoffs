@@ -1,6 +1,6 @@
 library(tidyverse)
 
-data = read_csv("temporary_training_set.csv")
+data = read_csv("dataset_300k_rel_cols_no_na.csv") # used to be temporary_training_set.csv
 data = data %>%
   mutate(net_xg = winner_xg + loser_xg) %>%
   mutate(faceoff_type = case_when(
@@ -22,4 +22,4 @@ cols = colnames(data %>% select(-net_xg))
 data <- data %>%
   mutate(across(all_of(cols), ~scale(.))) %>%
   mutate(across(all_of(cols), ~as.numeric(.)))
-data %>% write_csv('temp_train.csv')
+data %>% write_csv('dataset_300k_rel_cols_no_na_processed.csv') # used to be something like temp_train.csv
