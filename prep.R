@@ -1,6 +1,6 @@
 library(tidyverse)
 
-data = dataset
+data = read_csv("training.csv")
 data = data %>%
   mutate(net_xg = winner_xg + loser_xg) %>%
   mutate(faceoff_type = case_when(

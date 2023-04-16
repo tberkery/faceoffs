@@ -1,4 +1,4 @@
-
+library(tidyverse)
 assemble_stats = function() {
   source("driver.R")
   mega_dict = connect_skaters_and_goaltending_to_team_performance()
