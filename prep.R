@@ -199,7 +199,51 @@ prep_zone_starts_model = function(data) {
   data_def_def %>% write_csv(paste0('training_data_', model_name, '_defensive_defensive.csv'))
 }
 
+prep_all_model = function(data) {
+  model_name = 'all'
+  data = data %>%
+    mutate(net_xg = winner_xg + loser_xg) %>%
+    mutate(faceoff_type = case_when(
+      event_zone != 'Neu' &  ((last_faceoff_winner == home_team & home_zone == 'Off') | (last_faceoff_winner != home_team & home_zone == 'Def')) ~ 'Off zone won by Off team',
+      event_zone != 'Neu' &  ((last_faceoff_winner != home_team & home_zone == 'Off') | (last_faceoff_winner == home_team & home_zone == 'Def')) ~ 'Def zone won by Def team',
+      event_zone != 'Neu' &  ((last_faceoff_winner == home_team & home_zone == 'Def') | (last_faceoff_winner != home_team & home_zone == 'Off')) ~ 'Def zone won by Def team',
+      event_zone != 'Neu' &  ((last_faceoff_winner != home_team & home_zone == 'Def') | (last_faceoff_winner == home_team & home_zone == 'Off')) ~ 'Off zone won by Off team',
+      TRUE ~ 'other'
+    ))
+  
+  data_off_off = data %>%
+    filter(faceoff_type == 'Off zone won by Off team') %>%
+    select(-faceoff_type)
+  
+  data_def_def = data %>%
+    filter(faceoff_type == 'Def zone won by Def team') %>%
+    select(-faceoff_type)
+  
+  print(colnames(data_off_off))
+  print(colnames(data_def_def))
+  
+  cols = colnames(data_off_off %>% select(where(is.numeric)) %>% select(-net_xg))
+  data_off_off <- data_off_off %>%
+    mutate(across(all_of(cols), ~scale(.))) %>%
+    mutate(across(all_of(cols), ~as.numeric(.)))
+  
+  cols = colnames(data_def_def %>% select(where(is.numeric)) %>% select(-net_xg))
+  data_def_def <- data_def_def %>%
+    mutate(across(all_of(cols), ~scale(.))) %>%
+    mutate(across(all_of(cols), ~as.numeric(.)))
+  
+  print(nrow(data_off_off))
+  print(nrow(data_def_def))
+  
+  data_off_off = data_off_off %>% select_if(~ !any(is.na(.)))
+  data_def_def = data_def_def %>% select_if(~ !any(is.na(.)))
+  
+  data_off_off %>% write_csv(paste0('training_data_', model_name, '_offensive_offensive.csv'))
+  data_def_def %>% write_csv(paste0('training_data_', model_name, '_defensive_defensive.csv'))
+}
+
 prep_box_score_model(data)
 prep_expected_goals_model(data)
 prep_relative_to_teammates_model(data)
 prep_zone_starts_model(data)
+prep_all_model(data)
