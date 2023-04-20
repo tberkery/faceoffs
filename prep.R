@@ -248,9 +248,29 @@ prep_relative_to_teammates_model(data)
 prep_zone_starts_model(data)
 prep_all_model(data)
 
+vol_summary <- function(df, summary_name, col) {
+  mutate(df, "{summary_name}" := sum({{col}}))
+}
+vol_summary <- function(df, summary_name, col1, col2, col3) {
+  mutate(df, "{summary_name}" := sum({{col}}))
+}
+rate_summary <- function(df, summary_name, col) {
+  mutate(df, "{summary_name}" := mean({{col}}))
+}
+
 get_line_summary = function(data) {
-  num_cols = len(colnames(data))
+  num_cols = length(colnames(data))
   start_col_pattern = 41 # Win_F1
   cols_per_role = 183 - 41
-  
+  all_cols = colnames(data)
+  total_cols = length(all_cols)
+  all_stat_cols = colnames(data[,start_col_pattern:total_cols])
+  rate_cols = colnames(data %>% select(contains('Percent') | (contains('Per') & contains('60'))))
+  vol_cols = setdiff(all_stat_cols, rate_cols)
+  data_summarized = data
+  rate_cols_Win_F1 = 
+  for (stat in rate_cols) {
+    data_summarized = data_summarized %>%
+      rate_summary(paste0())
+  }
 }
