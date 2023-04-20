@@ -247,3 +247,10 @@ prep_expected_goals_model(data)
 prep_relative_to_teammates_model(data)
 prep_zone_starts_model(data)
 prep_all_model(data)
+
+get_line_summary = function(data) {
+  num_cols = len(colnames(data))
+  start_col_pattern = 41 # Win_F1
+  cols_per_role = 183 - 41
+  
+}
