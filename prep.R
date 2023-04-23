@@ -1,7 +1,6 @@
 library(tidyverse)
 
 data = read_csv("training.csv")
-data = read_csv("recoded_roles.csv")
 microstats = read_csv("microstats.csv")
 data_with_microstats = data %>%
   mutate(year = as.numeric(str_sub(season_x, 1, 4))) %>%
@@ -18,6 +17,8 @@ data_with_microstats = data %>%
   
   
 data = read_csv("all_df_updated.csv")
+
+data = read_csv("recoded_roles_updated.csv")
 data = data %>%
   mutate(net_xg = winner_xg + loser_xg) %>%
   mutate(faceoff_type = case_when(
