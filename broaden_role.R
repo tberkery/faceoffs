@@ -1,11 +1,11 @@
 library(tidyverse)
-
-general_cols = colnames(data %>% select(contains('Win_F1')) %>% select(-starts_with('Win_F1'))) # use Win_F1 as example
+data = read_csv("all_df_updated.csv")
+general_cols = colnames(data %>% select(contains('Win_F1')) %>% select(-starts_with('Win_F1')) %>% select(where(is.numeric))) # use Win_F1 as example
 general_cols <- gsub('_Win_F1', '', general_cols) # strip _Win_F1 suffix to get all generalizable column names
 general_cols = general_cols[-1] # drop Win_F1
 general_cols = general_cols[-1] # drop API ID
 g_col = general_cols[[1]]
-summary_df = data %>% select(1:34)
+summary_df = data %>% select(1:34, contains('_G1'))
 for (g_col in general_cols) {
   g_col_win = paste0(g_col, "_Win_") # format generalized col with _Win_ following it
   g_col_loss = paste0(g_col, "_Lose_") # same for _Loss_
@@ -21,7 +21,7 @@ for (g_col in general_cols) {
   partial_lose = data %>% select(starts_with(g_col_loss))
   # detect whether stat that needs to be averaged or summed
   # i.e. contains per_60 or percent or %
-  if (grepl("%", g_col) | grepl("_per_", g_col) | grepl("_Per_", g_col) | grepl("_Percent_", g_col) | grepl("_percent_", g_col)) { # this stat should be averaged
+  if (grepl("%", g_col) | grepl("_per_", g_col) | grepl("_Per_", g_col) | grepl("_Percent_", g_col) | grepl("_percent_", g_col) | grepl("Draft", g_col)) { # this stat should be averaged
     print(paste0("Performing AVERAGING for ", g_col))
     partial_win = partial_win %>%
       mutate(sum_all = .[[1]] + .[[2]] + .[[3]] + .[[4]] + .[[5]]) %>% # referencing columns based on index

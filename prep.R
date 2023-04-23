@@ -1,6 +1,7 @@
 library(tidyverse)
 
 data = read_csv("training.csv")
+data = read_csv("recoded_roles.csv")
 microstats = read_csv("microstats.csv")
 data_with_microstats = data %>%
   mutate(year = as.numeric(str_sub(season_x, 1, 4))) %>%
