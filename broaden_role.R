@@ -1,6 +1,6 @@
 library(tidyverse)
 
-general_cols = colnames(data %>% select(contains('Win_F1'))) # use Win_F1 as example
+general_cols = colnames(data %>% select(contains('Win_F1')) %>% select(-starts_with('Win_F1'))) # use Win_F1 as example
 general_cols <- gsub('_Win_F1', '', general_cols) # strip _Win_F1 suffix to get all generalizable column names
 general_cols = general_cols[-1] # drop Win_F1
 general_cols = general_cols[-1] # drop API ID
