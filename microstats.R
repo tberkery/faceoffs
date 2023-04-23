@@ -1,5 +1,5 @@
 library(tidyverse)
-
+library(mice)
 # 2017
 year = 2017
 read_microstats = function(year) {
@@ -19,25 +19,29 @@ read_microstats = function(year) {
     game_file_entries = openxlsx::read.xlsx(paste0("./Corey Sznajder Data/20", year - 2000, "-", year - 1999, " Season/Team Pages/", file), 'Entries') 
     game_file_entries <- game_file_entries[, !duplicated(colnames(game_file_entries))]
     game_file_entries = game_file_entries %>%
-      mutate(year = year)
+      mutate(year = year) %>%
+      select(-Pos_pass_type)
     print("worked")
     
     game_file_exits = openxlsx::read.xlsx(paste0("./Corey Sznajder Data/20", year - 2000, "-", year - 1999, " Season/Team Pages/", file), 'Exits') 
     game_file_exits <- game_file_exits[, !duplicated(colnames(game_file_exits))]
     game_file_exits = game_file_exits %>%
-      mutate(year = year)
+      mutate(year = year) %>%
+      select(-Pos_pass_type)
     print("worked")
     
     game_file_entries_defense = openxlsx::read.xlsx(paste0("./Corey Sznajder Data/20", year - 2000, "-", year - 1999, " Season/Team Pages/", file), 'Entry Defense') 
     game_file_entries_defense <- game_file_entries_defense[, !duplicated(colnames(game_file_entries_defense))]
     game_file_entries_defense = game_file_entries_defense %>%
-      mutate(year = year)
+      mutate(year = year) %>%
+      select(-Pos_pass_type)
     print("worked")
     
     game_file_pass_types = openxlsx::read.xlsx(paste0("./Corey Sznajder Data/20", year - 2000, "-", year - 1999, " Season/Team Pages/", file), 'Pass Types')
     game_file_pass_types <- game_file_pass_types[, !duplicated(colnames(game_file_pass_types))]
     game_file_pass_types = game_file_pass_types %>%
-      mutate(year = year)
+      mutate(year = year) %>%
+      select(-Pos_pass_type)
     print("worked")
     
     if (!first) {
@@ -139,11 +143,11 @@ read_full_season_microstats = function(year) {
            `Low-to-High` = `Low-to-High.Passes`,
            `Behind.Net` = `Behind.Net.Passes`,
            Deflection = `Sum.of.Deflections`,
-           OZ = Sum.of.OZ.Assist,
+           #OZ = Sum.of.OZ.Assist,
            NZ = Sum.of.NZ.Assist,
            DZ = Sum.of.DZ.Assist,
            ) %>%
-    mutate(#`High.Danger` = `HD.Passes/60` * Sum.of.5v5.TOI_entries / 60,
+    mutate(`High.Danger` = `HD.Passes/60` * Sum.of.5v5.TOI_entries / 60,
            `One-timer` = `One-timer/60` * Sum.of.5v5.TOI_entries / 60,
            Clear = `Sum.of.5v5.TOI_entries` * `Clears.per.60` / 60,
            Fails = `Sum.of.5v5.TOI_entries` * `Failed.Exit.per.60` / 60)
@@ -159,6 +163,18 @@ cols_2021 = colnames(microstats_2021)
 cols_both = intersect(cols_prev, cols_2021)
 microstats_prev = microstats_prev %>% select(all_of(cols_both))
 microstats_2021 = microstats_2021 %>% select(all_of(cols_both))
+microstats_all = rbind(microstats_prev, microstats_2021)
+microstats_all_grouped = microstats_all %>%
+  group_by(Player, year) %>%
+  mutate(across(where(is.double), ~mean(., na.rm = TRUE)),
+         across(where(is.integer), ~sum(., na.rm = TRUE))) %>%
+  distinct(.keep_all = TRUE)
+
+microstats_all_grouped <- mutate_all(microstats_all_grouped, ~coalesce(.,0))
+
+microstats_all_grouped %>% write_csv("microstats.csv")
+
+# EVERYTHING BELOW HERE NOT MEANT TO BE USED
 print(setdiff(colnames(microstats_prev), colnames(combined_2021)))
 
 year = 2021
@@ -183,8 +199,8 @@ read_microstats_2021_updated = function(year) {
   }
   combined_2021 = microstats_data
   combined_2021 = combined_2021 %>%
-    rename(#Player = Row.Labels,
-           Entries = `5v5.Entries`,
+    rename(Player = Row.Labels,
+           Entries = `Zone.Entries`,
            # Address Caryy-in%
            Passes = Setups,
            # Address Pass%
