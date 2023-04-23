@@ -199,7 +199,7 @@ full_df = general %>%
 
 full_df$winner
 
-write_csv(full_df, 'all_df.csv')
+write_csv(full_df, 'all_df_updated.csv')
 
 return(full_df)
 }

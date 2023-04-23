@@ -1,6 +1,22 @@
 library(tidyverse)
 
 data = read_csv("training.csv")
+microstats = read_csv("microstats.csv")
+data_with_microstats = data %>%
+  mutate(year = as.numeric(str_sub(season_x, 1, 4))) %>%
+  left_join(microstats, by = c('Player_Win_F1' = 'Player', 'year')) %>%
+  left_join(microstats, by = c('Player_Win_F2' = 'Player', 'year'), suffix = c('_Win_F1', '_Win_F2')) %>%
+  left_join(microstats, by = c('Player_Win_F3' = 'Player', 'year')) %>%
+  left_join(microstats, by = c('Player_Win_D1' = 'Player', 'year'), suffix = c('_Win_F3', '_Win_D1')) %>%
+  left_join(microstats, by = c('Player_Win_D2' = 'Player', 'year')) %>%
+  left_join(microstats, by = c('Player_Lose_F1' = 'Player', 'year'), suffix = c('_Win_D2', '_Lose_F1')) %>%
+  left_join(microstats, by = c('Player_Lose_F2' = 'Player', 'year')) %>%
+  left_join(microstats, by = c('Player_Lose_F3' = 'Player', 'year'), suffix = c('_Lose_F2', '_Lose_F3')) %>%
+  left_join(microstats, by = c('Player_Lose_D1' = 'Player', 'year')) %>%
+  left_join(microstats, by = c('Player_Lose_D2' = 'Player', 'year'), suffix = c('_Lose_D1', '_Lose_D2'))
+  
+  
+data = read_csv("all_df_updated.csv")
 data = data %>%
   mutate(net_xg = winner_xg + loser_xg) %>%
   mutate(faceoff_type = case_when(
