@@ -92,7 +92,7 @@ microstats_2017 = read_microstats(2017)
 microstats_2018 = read_microstats(2018)
 microstats_2019 = read_microstats(2019)
 
-known_cols = c(colnames(entries_2018), colnames(exits_2018), colnames(pass_types_2018))
+#known_cols = c(colnames(entries_2018), colnames(exits_2018), colnames(pass_types_2018))
 
 year = 2021
 read_full_season_microstats = function(year) {
@@ -137,8 +137,13 @@ read_full_season_microstats = function(year) {
            Possession.Exits = `Exits.w/.Possession`,
            `Fail%` = `Failed.Exit%`,
            `Low-to-High` = `Low-to-High.Passes`,
-           `Behind-Net` = `Behind.Net.Passes`) %>%
-    mutate(`High.Danger` = `HD.Passes/60` * Sum.of.5v5.TOI_entries / 60,
+           `Behind.Net` = `Behind.Net.Passes`,
+           Deflection = `Sum.of.Deflections`,
+           OZ = Sum.of.OZ.Assist,
+           NZ = Sum.of.NZ.Assist,
+           DZ = Sum.of.DZ.Assist,
+           ) %>%
+    mutate(#`High.Danger` = `HD.Passes/60` * Sum.of.5v5.TOI_entries / 60,
            `One-timer` = `One-timer/60` * Sum.of.5v5.TOI_entries / 60,
            Clear = `Sum.of.5v5.TOI_entries` * `Clears.per.60` / 60,
            Fails = `Sum.of.5v5.TOI_entries` * `Failed.Exit.per.60` / 60)
@@ -147,7 +152,7 @@ read_full_season_microstats = function(year) {
 microstats_2021 = read_full_season_microstats(2021)
 in_all = intersect(intersect(colnames(microstats_2017), colnames(microstats_2018)) , colnames(microstats_2019))
 microstats_prev = microstats_2017 %>% select(any_of(in_all)) %>% rbind(microstats_2018 %>% select(any_of(in_all))) %>% rbind(microstats_2019 %>% select(any_of(in_all)))
-microstats_prev = microstats_prev %>% select(-contains('dump'), -contains('Dump'), -(contains('Shots') & contains('Off')))#, #-any_of(Left_entries, Center_entries, Right_entries, Pass, Carry, Transition, Icing, Left_exits, Center_exits, Right_exits, Pos_pass_type, Left, Center, Right, OZ, NZ, DZ, OL, OC, OR, Stretch.Passes, Home.Plate))
+#microstats_prev = microstats_prev %>% select(-contains('dump'), -contains('Dump'), -(contains('Shots') & contains('Off')))#, #-any_of(Left_entries, Center_entries, Right_entries, Pass, Carry, Transition, Icing, Left_exits, Center_exits, Right_exits, Pos_pass_type, Left, Center, Right, OZ, NZ, DZ, OL, OC, OR, Stretch.Passes, Home.Plate))
 
 cols_prev = colnames(microstats_prev)
 cols_2021 = colnames(microstats_2021)
@@ -156,6 +161,61 @@ microstats_prev = microstats_prev %>% select(all_of(cols_both))
 microstats_2021 = microstats_2021 %>% select(all_of(cols_both))
 print(setdiff(colnames(microstats_prev), colnames(combined_2021)))
 
+year = 2021
+read_microstats_2021_updated = function(year) {
+  file = NULL
+  microstats_data = NULL
+  if (year == 2020) {
+    file = "Full Season Stats.xlsx"
+    microstats_data = openxlsx::read.xlsx(paste0("./Corey Sznajder Data/", file), 'Player List')
+  } else {
+    file = "Formatted 2021-22 Season Totals Sheet Updated for Reading.xlsx"
+    microstats_data = openxlsx::read.xlsx(paste0("./Corey Sznajder Data/", file), 'Sheet1') 
+    microstats_data <- microstats_data[, !duplicated(colnames(microstats_data))]
+    microstats_data = microstats_data %>%
+      rename_with(~str_remove(., 'Sum.of.')) %>% # Super awesome, cool new dplyr feature
+      #rename(`Entries.w/.Passing.Play.Per.60` = 19) %>%
+      mutate(Player = `Row.Labels`) %>%#,
+             #Entries = `5v5.Entries`,
+             #Carries = `Sum.of.5v5.TOI` * `Carries/60` / 60,
+             #`Carry-in%` = `Carry%`) %>%
+      mutate(year = year)
+  }
+  combined_2021 = microstats_data
+  combined_2021 = combined_2021 %>%
+    rename(#Player = Row.Labels,
+           Entries = `5v5.Entries`,
+           # Address Caryy-in%
+           Passes = Setups,
+           # Address Pass%
+           # Address Dump-ins
+           Possession.Exits = `Exits.w/.Possession`,
+           # Address Fail%
+           
+           `Exit%` = `Successful.Exit%`,
+           `Possesion.Exit%` = `Exit.w/.Possession%`,
+           Exits = Zone.Exits,
+           
+           `Fail%` = `Failed.Exit%`,
+           `Low-to-High` = `Low-to-High.Passes`,
+           `Behind.Net` = `Behind.Net.Passes`,
+           Deflection = `Sum.of.Deflections`,
+           OZ = Sum.of.OZ.Assist,
+           NZ = Sum.of.NZ.Assist,
+           DZ = Sum.of.DZ.Assist,
+    ) %>%
+    #mutate(#`High.Danger` = `HD.Passes/60` * Sum.of.5v5.TOI_entries / 60,
+      #`One-timer` = `One-timer/60` * Sum.of.5v5.TOI_entries / 60,
+      #Clear = `Sum.of.5v5.TOI_entries` * `Clears.per.60` / 60,
+      #Fails = `Sum.of.5v5.TOI_entries` * `Failed.Exit.per.60` / 60)
+    rename_with(~str_remove(., 'Sum of '))
+  return(combined_2021)
+}
+
+all_seen_cols = c(colnames(microstats_2017), colnames(microstats_2018), colnames(microstats_2019))
+print(all_seen_cols)
+
+print(setdiff(all_seen_cols, microstats_2021))
 
 
 microstats = NULL
