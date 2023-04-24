@@ -26,6 +26,22 @@ load_sznajder = function() {
   dataset = subset_relevant_cols(dataset)
 }
 
+load_sznajder_2022 = function() {
+  source("load_data_22-23.R")
+  load_season(2022, 2023) # same note... this is 2020-2021 and 2021-2022.
+  all_zone_entries = read_csv("zone_entries_intermediate.csv")
+  all_zone_exits = read_csv("zone_exits_intermediate.csv")
+  source("Join_Entries.R")
+  big_join = join_entries(2022, 2023, all_zone_entries, all_zone_exits)
+  big_join = read_csv("big_join_after_fixes.csv")
+  source("join_pbp_and_sznajder.R")
+  pbp_with_role = condition(big_join, c(2022))
+  mega_dict = assemble_stats()
+  dataset = get_role_encoded_stats(pbp_with_role, mega_dict)
+  dataset %>% write_csv("new_dataset_updated_2022.csv")
+  dataset = subset_relevant_cols(dataset)
+}
+
 #impute = function(dataset) {
 #  draft_ov_cols = colnames(dataset %>% select(contains('Draft')))
 #  dataset = dataset %>%
