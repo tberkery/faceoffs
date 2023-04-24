@@ -74,9 +74,9 @@ for (g_col in general_cols) {
     summary_df[[g_col_win_F]] = partial_win[[g_col_win_F]]
     summary_df[[g_col_win_D]] = partial_win[[g_col_win_D]]
     
-    summary_df[[g_col_lose_all]] = partial_win[[g_col_lose_all]]
-    summary_df[[g_col_lose_F]] = partial_win[[g_col_lose_F]]
-    summary_df[[g_col_lose_D]] = partial_win[[g_col_lose_D]]
+    summary_df[[g_col_lose_all]] = partial_lose[[g_col_lose_all]]
+    summary_df[[g_col_lose_F]] = partial_lose[[g_col_lose_F]]
+    summary_df[[g_col_lose_D]] = partial_lose[[g_col_lose_D]]
   }
   
   # rename columns by index and apply appropriate transformation, grouping by
