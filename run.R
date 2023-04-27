@@ -18,7 +18,7 @@ load_sznajder = function() {
   source("Join_Entries.R")
   big_join = join_entries(2017, 2022, all_zone_entries, all_zone_exits)
   big_join %>% write_csv("updated_big_join.csv")
-  #big_join = read_csv("big_join_after_fixes.csv")
+  big_join = read_csv("big_join_updated")
   source("join_pbp_and_sznajder.R")
   pbp_with_role = condition(big_join, c(2017, 2018, 2020, 2021))
   mega_dict = assemble_stats()
