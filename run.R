@@ -18,12 +18,15 @@ load_sznajder = function() {
   source("Join_Entries.R")
   big_join = join_entries(2017, 2022, all_zone_entries, all_zone_exits)
   big_join %>% write_csv("updated_big_join.csv")
-  big_join = read_csv("big_join_updated")
+  big_join = read_csv("updated_big_join.csv")
   source("join_pbp_and_sznajder.R")
   pbp_with_role = condition(big_join, c(2017, 2018, 2020, 2021))
+  temp = pbp_with_role %>%
+    filter(event_player_1 == 'NAZEM.KADRI')
+  print(nrow(temp))
   mega_dict = assemble_stats()
-  dataset = get_role_encoded_stats(pbp_with_role, mega_dict)
-  dataset %>% write_csv("new_dataset_updated.csv")
+  dataset = get_role_encoded_stats(pbp_with_role, mega_dict) #ERROR SEEMS TO BE HERE
+  dataset %>% write_csv("new_dataset_updated_2.csv")
   dataset = subset_relevant_cols(dataset)
   check_leivo(dataset)
   source("impute_data.R")
