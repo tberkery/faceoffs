@@ -24,6 +24,39 @@ load_sznajder = function() {
   dataset = get_role_encoded_stats(pbp_with_role, mega_dict)
   dataset %>% write_csv("new_dataset_updated.csv")
   dataset = subset_relevant_cols(dataset)
+  check_leivo(dataset)
+  source("impute_data.R")
+  dataset = impute_data(dataset)
+  check_leivo(dataset)
+  source("broaden_role.R")
+  data_broadened_role = broaden_role(dataset)
+  check_leivo(data_broadened_role)
+  data_with_microstats = data_broadened_role %>%
+    mutate(year = as.numeric(str_sub(season_x, 1, 4))) %>%
+    left_join(microstats, by = c('Player_Win_F1' = 'Player', 'year')) %>%
+    left_join(microstats, by = c('Player_Win_F2' = 'Player', 'year'), suffix = c('_Win_F1', '_Win_F2')) %>%
+    left_join(microstats, by = c('Player_Win_F3' = 'Player', 'year')) %>%
+    left_join(microstats, by = c('Player_Win_D1' = 'Player', 'year'), suffix = c('_Win_F3', '_Win_D1')) %>%
+    left_join(microstats, by = c('Player_Win_D2' = 'Player', 'year')) %>%
+    left_join(microstats, by = c('Player_Lose_F1' = 'Player', 'year'), suffix = c('_Win_D2', '_Lose_F1')) %>%
+    left_join(microstats, by = c('Player_Lose_F2' = 'Player', 'year')) %>%
+    left_join(microstats, by = c('Player_Lose_F3' = 'Player', 'year'), suffix = c('_Lose_F2', '_Lose_F3')) %>%
+    left_join(microstats, by = c('Player_Lose_D1' = 'Player', 'year')) %>%
+    left_join(microstats, by = c('Player_Lose_D2' = 'Player', 'year'), suffix = c('_Lose_D1', '_Lose_D2'))
+  check_leivo(data_with_microstats)
+  data_with_microstats = data_with_microstats %>%
+    mutate(net_xg = winner_xg + loser_xg) %>%
+    mutate(faceoff_type = case_when(
+      event_zone != 'Neu' &  ((last_faceoff_winner == home_team & home_zone == 'Off') | (last_faceoff_winner != home_team & home_zone == 'Def')) ~ 'Off zone won by Off team',
+      event_zone != 'Neu' &  ((last_faceoff_winner != home_team & home_zone == 'Off') | (last_faceoff_winner == home_team & home_zone == 'Def')) ~ 'Def zone won by Def team',
+      event_zone != 'Neu' &  ((last_faceoff_winner == home_team & home_zone == 'Def') | (last_faceoff_winner != home_team & home_zone == 'Off')) ~ 'Def zone won by Def team',
+      event_zone != 'Neu' &  ((last_faceoff_winner != home_team & home_zone == 'Def') | (last_faceoff_winner == home_team & home_zone == 'Off')) ~ 'Off zone won by Off team',
+      TRUE ~ 'other'
+    )) %>%
+    select(faceoff_type, event_zone, last_faceoff_winner, event_team, home_team, away_team, home_zone, where(is.numeric)) %>%
+    drop_na()
+  check_leivo(data_with_microstats)
+  model_name = ''
 }
 
 load_sznajder_2022 = function() {
@@ -42,8 +75,8 @@ load_sznajder_2022 = function() {
   dataset = subset_relevant_cols(dataset)
 }
 
-#impute = function(dataset) {
-#  draft_ov_cols = colnames(dataset %>% select(contains('Draft')))
-#  dataset = dataset %>%
-#    mutate(across(draft_cols), ~replace_na()
-#}
+check_leivo = function(temp) {
+  temp = temp %>%
+    filter(Win_F1_Name == 'JOSH.LEIVO')
+  print(nrow(temp))
+}
