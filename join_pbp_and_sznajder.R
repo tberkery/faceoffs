@@ -87,20 +87,41 @@ condition = function(big_join, years) {
 }
 
 get_role_encoded_stats = function(pbp_with_role, mega_dict) {
+  print("this function was called")
   mega_dict = mega_dict %>%
     mutate(season = paste0("20", substr(Season, 1, 2), "20", substr(Season, 4, 5)))
+  check_leivo(pbp_with_role)
   pbp_with_role_and_stats = pbp_with_role %>%
     mutate(season_x = paste(season_x)) %>%
-    left_join(mega_dict, by = c('Win_F1_Name' = 'EH_ID', 'season_x' = 'season')) %>%
-    left_join(mega_dict, by = c('Win_F2_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('_Win_F1', '_Win_F2')) %>%
-    left_join(mega_dict, by = c('Win_F3_Name' = 'EH_ID', 'season_x' = 'season')) %>%
-    left_join(mega_dict, by = c('Win_D1_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('_Win_F3', '_Win_D1')) %>%
-    left_join(mega_dict, by = c('Win_D2_Name' = 'EH_ID', 'season_x' = 'season')) %>%
-    left_join(mega_dict, by = c('Lose_F1_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('_Win_D2', '_Lose_F1')) %>%
-    left_join(mega_dict, by = c('Lose_F2_Name' = 'EH_ID', 'season_x' = 'season')) %>%
-    left_join(mega_dict, by = c('Lose_F3_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('_Lose_F2', '_Lose_F3')) %>%
-    left_join(mega_dict, by = c('Lose_D1_Name' = 'EH_ID', 'season_x' = 'season')) %>%
+    left_join(mega_dict, by = c('Win_F1_Name' = 'EH_ID', 'season_x' = 'season')) 
+  check_leivo(pbp_with_role_and_stats)
+  pbp_with_role_and_stats = pbp_with_role_and_stats %>%
+    left_join(mega_dict, by = c('Win_F2_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('_Win_F1', '_Win_F2'))
+  check_leivo(pbp_with_role_and_stats)
+  pbp_with_role_and_stats = pbp_with_role_and_stats %>%
+    left_join(mega_dict, by = c('Win_F3_Name' = 'EH_ID', 'season_x' = 'season'))
+  check_leivo(pbp_with_role_and_stats)
+  pbp_with_role_and_stats = pbp_with_role_and_stats %>%
+    left_join(mega_dict, by = c('Win_D1_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('_Win_F3', '_Win_D1'))
+  check_leivo(pbp_with_role_and_stats)
+  pbp_with_role_and_stats = pbp_with_role_and_stats %>%
+    left_join(mega_dict, by = c('Win_D2_Name' = 'EH_ID', 'season_x' = 'season'))
+  check_leivo(pbp_with_role_and_stats)
+  pbp_with_role_and_stats = pbp_with_role_and_stats %>%
+    left_join(mega_dict, by = c('Lose_F1_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('_Win_D2', '_Lose_F1'))
+  check_leivo(pbp_with_role_and_stats)
+  pbp_with_role_and_stats = pbp_with_role_and_stats %>%
+    left_join(mega_dict, by = c('Lose_F2_Name' = 'EH_ID', 'season_x' = 'season'))
+  check_leivo(pbp_with_role_and_stats)
+  pbp_with_role_and_stats = pbp_with_role_and_stats %>%
+    left_join(mega_dict, by = c('Lose_F3_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('_Lose_F2', '_Lose_F3'))
+  check_leivo(pbp_with_role_and_stats)
+  pbp_with_role_and_stats = pbp_with_role_and_stats %>%
+    left_join(mega_dict, by = c('Lose_D1_Name' = 'EH_ID', 'season_x' = 'season'))
+  check_leivo(pbp_with_role_and_stats)
+  pbp_with_role_and_stats = pbp_with_role_and_stats %>%
     left_join(mega_dict, by = c('Lose_D2_Name' = 'EH_ID', 'season_x' = 'season'), suffix = c('_Lose_D1', '_Lose_D2'))
+  check_leivo(pbp_with_role_and_stats)
   return(pbp_with_role_and_stats)
 }
 

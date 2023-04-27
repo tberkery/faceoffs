@@ -21,6 +21,7 @@ load_sznajder = function() {
   big_join = read_csv("updated_big_join.csv")
   source("join_pbp_and_sznajder.R")
   pbp_with_role = condition(big_join, c(2017, 2018, 2020, 2021))
+  check_leivo(pbp_with_role)
   temp = pbp_with_role %>%
     filter(event_player_1 == 'NAZEM.KADRI')
   print(nrow(temp))
