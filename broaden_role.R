@@ -5,7 +5,7 @@ general_cols <- gsub('_Win_F1', '', general_cols) # strip _Win_F1 suffix to get 
 general_cols = general_cols[-1] # drop Win_F1
 general_cols = general_cols[-1] # drop API ID
 g_col = general_cols[[1]]
-summary_df = data %>% select(-contains("_Win_") & -contains("_Lose_")) #select(1:34, winner_xg, loser_xg, contains('_G1'))
+summary_df = data %>% select((-contains("_Win_") & -contains("_Lose_")) | (contains('Win_') & contains('Name')) | (contains('Lose_') & contains('Name'))) #select(1:34, winner_xg, loser_xg, contains('_G1'))
 for (g_col in general_cols) {
   g_col_win = paste0(g_col, "_Win_") # format generalized col with _Win_ following it
   g_col_loss = paste0(g_col, "_Lose_") # same for _Loss_
@@ -84,4 +84,4 @@ for (g_col in general_cols) {
   
   # in new dataframe, insert appropriately transformed values as columns (should be 4 cols)
 }
-summary_df %>% write_csv("recoded_roles_updated.csv")
+summary_df %>% write_csv("recoded_roles_updated_with_names.csv")
