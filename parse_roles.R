@@ -64,22 +64,9 @@ identify_faceoff_winners = function(faceoffs) {
     mutate(home_faceoff_win = grepl(last_name_faceoff_winner, home_names, fixed = TRUE)) %>%
     mutate(across(c("home_on_1", "home_on_2", "home_on_3", "home_on_4", "home_on_5",
                     "away_on_1", "away_on_2", "away_on_3", "away_on_4", "away_on_5", "last_name_faceoff_winner"), ~paste0(.)))
+  
+  print(faceoffs_updated$home_faceoff_win)
     
-  faceoffs_updated = faceoffs_updated %>%
-    mutate(faceoff_winner_name = case_when(
-      is.na(last_name_faceoff_winner) ~ NA,
-      grepl(last_name_faceoff_winner, home_on_1, fixed = TRUE) ~ home_on_1,
-      grepl(last_name_faceoff_winner, home_on_2, fixed = TRUE) ~ home_on_2,
-      grepl(last_name_faceoff_winner, home_on_3, fixed = TRUE) ~ home_on_3,
-      grepl(last_name_faceoff_winner, home_on_4, fixed = TRUE) ~ home_on_4,
-      grepl(last_name_faceoff_winner, home_on_5, fixed = TRUE) ~ home_on_5,
-      grepl(last_name_faceoff_winner, away_on_1, fixed = TRUE) ~ away_on_1,
-      grepl(last_name_faceoff_winner, away_on_2, fixed = TRUE) ~ away_on_2,
-      grepl(last_name_faceoff_winner, away_on_3, fixed = TRUE) ~ away_on_3,
-      grepl(last_name_faceoff_winner, away_on_4, fixed = TRUE) ~ away_on_4,
-      grepl(last_name_faceoff_winner, away_on_5, fixed = TRUE) ~ away_on_5,
-      TRUE ~ NA
-    ))
   temp = faceoffs_updated %>%
     select(event_team, team_abbrev_faceoff_winner, last_name_faceoff_winner, event_zone, home_faceoff_win, starts_with("home_on_"), starts_with("away_on_"))
   return(faceoffs_updated)
