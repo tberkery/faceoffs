@@ -26,14 +26,17 @@ identify_roles = function(big_join, mega_dict) {
     inner_join(player_season_positions, by = c('away_on_4' = 'EH_ID', 'season')) %>%
     inner_join(player_season_positions, by = c('away_on_5' = 'EH_ID', 'season'), suffix = c('_away_on_4', '_away_on_5'))
   
-  for_cols = c("home_on_1", "home_on_2", "home_on_3", "away_on_1", "away_on_2", "away_on_3")
-  def_cols = c("home_on_4", "home_on_5", "away_on_4", "away_on_5")
-  for (for_col in for_cols) {
-    for (def_col in def_cols) {
-      print(paste0("working on ", for_col, "/", def_col, " swap"))
-      criteria = (faceoffs[[paste0("Pos_", for_col)]] == 'Defenseman' & faceoffs[[paste0("Pos_", def_col)]] == 'Forward')
-      faceoffs[criteria, c(for_col, def_col)] = faceoffs[criteria, c(def_col, for_col)]
-      faceoffs[criteria, c(paste0("Pos_", for_col), paste0("Pos_", def_col))] = faceoffs[criteria, c(paste0("Pos_", def_col), paste0("Pos_", for_col))]
+  statuses = c("home", "away")
+  for_cols = c("_on_1", "_on_2", "_on_3", "_on_1", "_on_2", "_on_3")
+  def_cols = c("_on_4", "_on_5", "_on_4", "_on_5")
+  for (status in statuses) {
+    for (for_col in for_cols) {
+      for (def_col in def_cols) {
+        print(paste0("working on ", status, for_col, "/", status, def_col, " swap"))
+        criteria = (faceoffs[[paste0("Pos_", status, for_col)]] == 'Defenseman' & faceoffs[[paste0("Pos_", status, def_col)]] == 'Forward')
+        faceoffs[criteria, c(paste0(status, for_col), paste0(status,def_col))] = faceoffs[criteria, c(paste0(status, def_col), paste0(status, for_col))]
+        faceoffs[criteria, c(paste0("Pos_", status, for_col), paste0("Pos_", status, def_col))] = faceoffs[criteria, c(paste0("Pos_", status, def_col), paste0("Pos_", status, for_col))]
+      }
     }
   }
 }
