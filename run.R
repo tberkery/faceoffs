@@ -82,6 +82,7 @@ load_sznajder_2022 = function() {
 
 run_abbreviated = function() {
   big_join = read_csv("updated_big_join.csv")
+  mega_dict = assemble_stats()
   source("join_pbp_and_sznajder.R")
   source("parse_roles.R")
   faceoffs = identify_roles(big_join, mega_dict)
