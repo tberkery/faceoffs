@@ -115,10 +115,16 @@ identify_faceoff_winners = function(faceoffs) {
   return(faceoffs_updated)
 }
 
-filter_faceoffs = function(data) {
-  data %>%
+filter_faceoffs = function(faceoffs_updated) {
+  return(faceoffs_updated %>%
     filter(home_skaters == 5 & away_skaters == 5) %>%
-    select(-home_skaters, -away_skaters, -contains('7'), -pbp_distance)
+    select(-home_skaters, -away_skaters, -contains('7'), -pbp_distance,
+           -num_on, -num_off, -players_on, -players_off, -event_player_3, -event_detail, -is_pp, -pred_goal))
+}
+
+second_filter_faceoffs = function(faceoffs_encoded) {
+  return(faceoffs_encoded %>%
+           select(-home_goalie, -away_goalie, -contains('6'), -home_names, -away_names))
 }
 
 encode_team_faceoff_status = function(faceoffs_updated) {
@@ -149,7 +155,48 @@ encode_team_faceoff_status = function(faceoffs_updated) {
            Lose_G_Name = away_on_6)
   
   # Note previous line (marked "handled goalies") puts goalie of (faceoff) winning team in home_on_6 and goalie of losing team in away_on_6
+  faceoffs_encoded = faceoffs_encoded %>%
+    second_filter_faceoffs()
   return(faceoffs_encoded)
   
-  
+}
+
+get_role_encoded_stats_updated = function(faceoffs_encoded, mega_dict) { # inspired by get_role_encoded_stats in join_pbp_and_sznajder.R
+  print("this function was called")
+  mega_dict = mega_dict %>%
+    mutate(season = as.numeric(paste0("20", substr(Season, 1, 2), "20", substr(Season, 4, 5))))
+  pbp_with_role = faceoffs_encoded %>%
+    mutate(season = as.numeric(season))
+  check_leivo(pbp_with_role)
+  pbp_with_role_and_stats = pbp_with_role %>%
+    left_join(mega_dict, by = c('Win_F1_Name' = 'EH_ID', 'season')) 
+  check_leivo(pbp_with_role_and_stats)
+  pbp_with_role_and_stats = pbp_with_role_and_stats %>%
+    left_join(mega_dict, by = c('Win_F2_Name' = 'EH_ID', 'season'), suffix = c('_Win_F1', '_Win_F2'))
+  check_leivo(pbp_with_role_and_stats)
+  pbp_with_role_and_stats = pbp_with_role_and_stats %>%
+    left_join(mega_dict, by = c('Win_F3_Name' = 'EH_ID', 'season'))
+  check_leivo(pbp_with_role_and_stats)
+  pbp_with_role_and_stats = pbp_with_role_and_stats %>%
+    left_join(mega_dict, by = c('Win_D1_Name' = 'EH_ID', 'season'), suffix = c('_Win_F3', '_Win_D1'))
+  check_leivo(pbp_with_role_and_stats)
+  pbp_with_role_and_stats = pbp_with_role_and_stats %>%
+    left_join(mega_dict, by = c('Win_D2_Name' = 'EH_ID', 'season'))
+  check_leivo(pbp_with_role_and_stats)
+  pbp_with_role_and_stats = pbp_with_role_and_stats %>%
+    left_join(mega_dict, by = c('Lose_F1_Name' = 'EH_ID', 'season'), suffix = c('_Win_D2', '_Lose_F1'))
+  check_leivo(pbp_with_role_and_stats)
+  pbp_with_role_and_stats = pbp_with_role_and_stats %>%
+    left_join(mega_dict, by = c('Lose_F2_Name' = 'EH_ID', 'season'))
+  check_leivo(pbp_with_role_and_stats)
+  pbp_with_role_and_stats = pbp_with_role_and_stats %>%
+    left_join(mega_dict, by = c('Lose_F3_Name' = 'EH_ID', 'season'), suffix = c('_Lose_F2', '_Lose_F3'))
+  check_leivo(pbp_with_role_and_stats)
+  pbp_with_role_and_stats = pbp_with_role_and_stats %>%
+    left_join(mega_dict, by = c('Lose_D1_Name' = 'EH_ID', 'season'))
+  check_leivo(pbp_with_role_and_stats)
+  pbp_with_role_and_stats = pbp_with_role_and_stats %>%
+    left_join(mega_dict, by = c('Lose_D2_Name' = 'EH_ID', 'season'), suffix = c('_Lose_D1', '_Lose_D2'))
+  check_leivo(pbp_with_role_and_stats)
+  return(pbp_with_role_and_stats)
 }
