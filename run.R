@@ -83,17 +83,13 @@ load_sznajder_2022 = function() {
 run_abbreviated = function() {
   big_join = read_csv("updated_big_join.csv")
   mega_dict = assemble_stats()
-  source("join_pbp_and_sznajder.R")
   source("parse_roles.R")
   faceoffs = identify_roles(big_join, mega_dict)
   faceoffs = identify_faceoff_winners(faceoffs)
   faceoffs = encode_team_faceoff_status(faceoffs)
   check_leivo(faceoffs)
-  temp = pbp_with_role %>%
-    filter(event_player_1 == 'NAZEM.KADRI')
-  print(nrow(temp))
-  mega_dict = assemble_stats()
-  dataset = get_role_encoded_stats(pbp_with_role, mega_dict) #ERROR SEEMS TO BE HERE
+  dataset = get_role_encoded_stats_updated(faceoffs, mega_dict)
+  source("join_pbp_and_sznajder.R")
   dataset %>% write_csv("new_dataset_updated_2.csv")
   dataset = subset_relevant_cols(dataset)
   check_leivo(dataset)
