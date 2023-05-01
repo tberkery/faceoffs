@@ -10,25 +10,66 @@ identify_roles = function(big_join, mega_dict) {
       TRUE ~ 'Forward'
     )) %>%
     mutate(season = as.numeric(paste0("20", substr(Season, 1, 2), "20", substr(Season, 4, 5)))) %>%
-    select(-Position, -Season) %>%
-    group_by(EH_ID, season) %>%
-    distinct(.keep_all = TRUE)
+    select(-Position, -Season, -season) %>%
+    group_by(EH_ID) %>%
+    distinct(EH_ID, .keep_all = TRUE)
   faceoffs = big_join %>%
     filter(event_type == 'FAC') %>% 
-    left_join(player_season_positions, by = c('home_on_1' = 'EH_ID', 'season')) %>%
-    left_join(player_season_positions, by = c('home_on_2' = 'EH_ID', 'season'), suffix = c('_home_on_1', '_home_on_2')) %>%
-    left_join(player_season_positions, by = c('home_on_3' = 'EH_ID', 'season')) %>%
-    left_join(player_season_positions, by = c('home_on_4' = 'EH_ID', 'season'), suffix = c('_home_on_3', '_home_on_4')) %>%
-    left_join(player_season_positions, by = c('home_on_5' = 'EH_ID', 'season')) %>%
-    left_join(player_season_positions, by = c('away_on_1' = 'EH_ID', 'season'), suffix = c('_home_on_5', '_away_on_1')) %>%
-    left_join(player_season_positions, by = c('away_on_2' = 'EH_ID', 'season')) %>%
-    left_join(player_season_positions, by = c('away_on_3' = 'EH_ID', 'season'), suffix = c('_away_on_2', '_away_on_3')) %>%
-    left_join(player_season_positions, by = c('away_on_4' = 'EH_ID', 'season')) %>%
-    left_join(player_season_positions, by = c('away_on_5' = 'EH_ID', 'season'), suffix = c('_away_on_4', '_away_on_5'))
+    left_join(player_season_positions, by = c('home_on_1' = 'EH_ID')) %>%
+    left_join(player_season_positions, by = c('home_on_2' = 'EH_ID'), suffix = c('_home_on_1', '_home_on_2')) %>%
+    left_join(player_season_positions, by = c('home_on_3' = 'EH_ID')) %>%
+    left_join(player_season_positions, by = c('home_on_4' = 'EH_ID'), suffix = c('_home_on_3', '_home_on_4')) %>%
+    left_join(player_season_positions, by = c('home_on_5' = 'EH_ID')) %>%
+    left_join(player_season_positions, by = c('home_on_6' = 'EH_ID'), suffix = c('_home_on_5', '_home_on_6')) %>%
+    left_join(player_season_positions, by = c('away_on_1' = 'EH_ID')) %>%
+    left_join(player_season_positions, by = c('away_on_2' = 'EH_ID'), suffix = c('_away_on_1', '_away_on_2')) %>%
+    left_join(player_season_positions, by = c('away_on_3' = 'EH_ID')) %>%
+    left_join(player_season_positions, by = c('away_on_4' = 'EH_ID'), suffix = c('_away_on_3', '_away_on_4')) %>%
+    left_join(player_season_positions, by = c('away_on_5' = 'EH_ID')) %>%
+    left_join(player_season_positions, by = c('away_on_4' = 'EH_ID'), suffix = c('_away_on_5', '_away_on_6'))
   
+  faceoffs = faceoffs %>%
+    filter_faceoffs()
+  
+  # This code swaps (if needed) the goalie to the _on_6 column (for home and away). 
+  # Only guaranteed and designed to work for 5v5 situations
   statuses = c("home", "away")
-  for_cols = c("_on_1", "_on_2", "_on_3", "_on_1", "_on_2", "_on_3")
-  def_cols = c("_on_4", "_on_5", "_on_4", "_on_5")
+  all_cols = c("_on_1", "_on_2", "_on_3", "_on_4", "_on_5")
+  for (status in statuses) {
+    for (col in all_cols) {
+      print(paste0("working on ", status, col))
+      goalie_type = paste0(status, "_goalie")
+      criteria = (!is.na(faceoffs[[paste0(status, col)]]) &
+                    !is.na(faceoffs[[paste0(goalie_type)]]) &
+                    faceoffs[[paste0(status, col)]] == faceoffs[[paste0(goalie_type)]])
+      faceoffs[criteria, c(paste0(status, col), paste0(status, "_on_6"))] = faceoffs[criteria, c(paste0(status, "_on_6"), paste0(status, col))]
+      faceoffs[criteria, c(paste0("Pos_", status, col), paste0("Pos_", status, "_on_6"))] = faceoffs[criteria, c(paste0("Pos_", status, "_on_6"), paste0("Pos_", status, col))]
+        
+    }
+  }
+  
+  # The following line seems redundant to me, but encoding will not work properly without it. Re-joining is essential!
+  faceoffs = faceoffs %>%
+    filter(event_type == 'FAC') %>% 
+    select(-starts_with("Pos_")) %>%
+    left_join(player_season_positions, by = c('home_on_1' = 'EH_ID')) %>%
+    left_join(player_season_positions, by = c('home_on_2' = 'EH_ID'), suffix = c('_home_on_1', '_home_on_2')) %>%
+    left_join(player_season_positions, by = c('home_on_3' = 'EH_ID')) %>%
+    left_join(player_season_positions, by = c('home_on_4' = 'EH_ID'), suffix = c('_home_on_3', '_home_on_4')) %>%
+    left_join(player_season_positions, by = c('home_on_5' = 'EH_ID')) %>%
+    left_join(player_season_positions, by = c('home_on_6' = 'EH_ID'), suffix = c('_home_on_5', '_home_on_6')) %>%
+    left_join(player_season_positions, by = c('away_on_1' = 'EH_ID')) %>%
+    left_join(player_season_positions, by = c('away_on_2' = 'EH_ID'), suffix = c('_away_on_1', '_away_on_2')) %>%
+    left_join(player_season_positions, by = c('away_on_3' = 'EH_ID')) %>%
+    left_join(player_season_positions, by = c('away_on_4' = 'EH_ID'), suffix = c('_away_on_3', '_away_on_4')) %>%
+    left_join(player_season_positions, by = c('away_on_5' = 'EH_ID')) %>%
+    left_join(player_season_positions, by = c('away_on_4' = 'EH_ID'), suffix = c('_away_on_5', '_away_on_6'))
+  
+  # This code swaps (if needed) the defensemen to the _on_4 and _on_5 columns and the forwards to the _on_1, _on_2, and _on_3 positions (for home and away)
+  # Only guaranteed and designed to work for 5v5 situations
+  statuses = c("home", "away")
+  for_cols = c("_on_1", "_on_2", "_on_3")
+  def_cols = c("_on_4", "_on_5")
   for (status in statuses) {
     for (for_col in for_cols) {
       for (def_col in def_cols) {
@@ -42,7 +83,9 @@ identify_roles = function(big_join, mega_dict) {
       }
     }
   }
- return(faceoffs) 
+  temp = faceoffs %>% select(contains('_on_') | contains('Pos')) %>% head(1000)
+  temp2 = faceoffs %>% select(contains('_on_') | contains('Pos')) %>% filter(away_on_3 == "Defensemen")
+  return(faceoffs) 
 }
 
 identify_faceoff_winners = function(faceoffs) {
@@ -67,16 +110,46 @@ identify_faceoff_winners = function(faceoffs) {
   
   print(faceoffs_updated$home_faceoff_win)
 
-  faceoffs_updated = faceoffs_updated %>%
-    mutate(faceoff_winning_player = case_when(
-      event_player_1 %in% home_names & home_faceoff_win ~ event_player_1,
-      event_player_1 %in% home_names & !home_faceoff_win ~ event_player_2,
-      event_player_2 %in% home_names & home_faceoff_win ~ event_player_2,
-      event_player_2 %in% home_names & !home_faceoff_win ~ event_player_1,
-      TRUE ~ NA
-    ))
-  
   temp = faceoffs_updated %>%
     select(event_team, team_abbrev_faceoff_winner, last_name_faceoff_winner, event_zone, home_faceoff_win, starts_with("home_on_"), starts_with("away_on_"))
   return(faceoffs_updated)
+}
+
+filter_faceoffs = function(data) {
+  data %>%
+    filter(home_skaters == 5 & away_skaters == 5) %>%
+    select(-home_skaters, -away_skaters, -contains('7'), -pbp_distance)
+}
+
+encode_team_faceoff_status = function(faceoffs_updated) {
+  roles = c("Win", "Lose")
+  positions = c("F1", "F2", "F3", "D1", "D2")
+  faceoffs_encoded = faceoffs_updated
+  for (role in roles) {
+    for (pos in positions) {
+      new_name = paste0(role, "_", pos, "_Name")
+      status = ifelse(role == "Win", "home", "away") # for now, temporarily assuming winning team is home team, losing team is away
+      num = ifelse(pos == "F1", 1, ifelse(pos == "F2", 2, ifelse(pos == "F3", 3, ifelse(pos == "D1", 4, ifelse(pos == "D2", 5, NA)))))
+      old_name = paste0(status, "_on_", num)
+      faceoffs_encoded = faceoffs_encoded %>%
+        rename(!!{new_name} := !!{old_name})
+    }
+  }
+  
+  roles = c("Win", "Loss")
+  pos_cols = c("F1", "F2", "F3", "D1", "D2")
+  for (pos_col in pos_cols) {
+    criteria = (!is.na(faceoffs_encoded[["home_faceoff_win"]]) &
+                  faceoffs_encoded[["home_faceoff_win"]] == FALSE)
+    faceoffs_encoded[criteria, c(paste0("Win_", pos_col, "_Name"), paste0("Lose_", pos_col, "_Name"))] = faceoffs_encoded[criteria, c(paste0("Lose_", pos_col, "_Name"), paste0("Win_", pos_col, "_Name"))]
+    faceoffs_encoded[criteria, c("home_on_6", "away_on_6")] = faceoffs_encoded[criteria, c("away_on_6", "home_on_6")] # handles goalies
+  }
+  faceoffs_encoded = faceoffs_encoded %>%
+    rename(Win_G_Name = home_on_6,
+           Lose_G_Name = away_on_6)
+  
+  # Note previous line (marked "handled goalies") puts goalie of (faceoff) winning team in home_on_6 and goalie of losing team in away_on_6
+  return(faceoffs_encoded)
+  
+  
 }
