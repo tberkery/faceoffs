@@ -66,12 +66,17 @@ identify_faceoff_winners = function(faceoffs) {
                     "away_on_1", "away_on_2", "away_on_3", "away_on_4", "away_on_5", "last_name_faceoff_winner"), ~paste0(.)))
   
   print(faceoffs_updated$home_faceoff_win)
-    
+
+  faceoffs_updated = faceoffs_updated %>%
+    mutate(faceoff_winning_player = case_when(
+      event_player_1 %in% home_names & home_faceoff_win ~ event_player_1,
+      event_player_1 %in% home_names & !home_faceoff_win ~ event_player_2,
+      event_player_2 %in% home_names & home_faceoff_win ~ event_player_2,
+      event_player_2 %in% home_names & !home_faceoff_win ~ event_player_1,
+      TRUE ~ NA
+    ))
+  
   temp = faceoffs_updated %>%
     select(event_team, team_abbrev_faceoff_winner, last_name_faceoff_winner, event_zone, home_faceoff_win, starts_with("home_on_"), starts_with("away_on_"))
   return(faceoffs_updated)
-}
-
-rename_identified_roles = function(faceoffs) {
-  faceoffs_renamed = faceoffs %>%
 }
