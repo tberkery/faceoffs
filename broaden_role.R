@@ -1,11 +1,11 @@
 library(tidyverse)
-data = read_csv("all_df_updated.csv")
+#data = read_csv("all_df_updated.csv")
 broaden_role = function(data) {
   general_cols = colnames(data %>% select(contains('Win_F1')) %>% select(-starts_with('Win_F1')) %>% select(where(is.numeric))) # use Win_F1 as example
   general_cols <- gsub('_Win_F1', '', general_cols) # strip _Win_F1 suffix to get all generalizable column names
   general_cols = general_cols[-1] # drop Win_F1
   general_cols = general_cols[-1] # drop API ID
-  g_col = general_cols[[1]]
+  g_col = general_cols[[1]] # for debugging/line-by-line-running convenience
   summary_df = data %>% select((-contains("_Win_") & -contains("_Lose_")) | (contains('Win_') & contains('Name')) | (contains('Lose_') & contains('Name'))) #select(1:34, winner_xg, loser_xg, contains('_G1'))
   for (g_col in general_cols) {
     g_col_win = paste0(g_col, "_Win_") # format generalized col with _Win_ following it
@@ -25,9 +25,12 @@ broaden_role = function(data) {
     if (grepl("%", g_col) | grepl("_per_", g_col) | grepl("_Per_", g_col) | grepl("_Percent_", g_col) | grepl("_percent_", g_col) | grepl("Draft", g_col)) { # this stat should be averaged
       print(paste0("Performing AVERAGING for ", g_col))
       partial_win = partial_win %>%
-        mutate(sum_all = .[[1]] + .[[2]] + .[[3]] + .[[4]] + .[[5]]) %>% # referencing columns based on index
-        mutate(sum_F = .[[1]] + .[[2]] + .[[3]]) %>% 
-        mutate(sum_D = .[[4]] + .[[5]]) %>% 
+        mutate(sum_all = rowSums(select(., starts_with(g_col)))) %>% # calculating row-wise sum of all columns containing `g_col`
+        mutate(sum_F = rowSums(select(., starts_with(paste0(g_col, "_F"))))) %>% 
+        mutate(sum_D = rowSums(select(., starts_with(paste0(g_col, "_D"))))) %>% 
+        # mutate(sum_all = .[[1]] + .[[2]] + .[[3]] + .[[4]] + .[[5]]) %>% # referencing columns based on index
+        # mutate(sum_F = .[[1]] + .[[2]] + .[[3]]) %>% 
+        # mutate(sum_D = .[[4]] + .[[5]]) %>% 
         mutate(sum_all = sum_all / 5) %>%
         mutate(sum_F = sum_F / 3) %>%
         mutate(sum_D = sum_D / 2) %>%
@@ -36,9 +39,12 @@ broaden_role = function(data) {
         rename(!!g_col_win_D:=sum_D) 
       
       partial_lose = partial_lose %>%
-        mutate(sum_all = .[[1]] + .[[2]] + .[[3]] + .[[4]] + .[[5]]) %>% # referencing columns based on index
-        mutate(sum_F = .[[1]] + .[[2]] + .[[3]]) %>% 
-        mutate(sum_D = .[[4]] + .[[5]]) %>% 
+        mutate(sum_all = rowSums(select(., starts_with(g_col)))) %>% # calculating row-wise sum of all columns containing `g_col`
+        mutate(sum_F = rowSums(select(., starts_with(paste0(g_col, "_F"))))) %>% 
+        mutate(sum_D = rowSums(select(., starts_with(paste0(g_col, "_D"))))) %>% 
+        # mutate(sum_all = .[[1]] + .[[2]] + .[[3]] + .[[4]] + .[[5]]) %>% # referencing columns based on index
+        # mutate(sum_F = .[[1]] + .[[2]] + .[[3]]) %>% 
+        # mutate(sum_D = .[[4]] + .[[5]]) %>% 
         mutate(sum_all = sum_all / 5) %>%
         mutate(sum_F = sum_F / 3) %>%
         mutate(sum_D = sum_D / 2) %>%
