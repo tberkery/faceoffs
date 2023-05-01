@@ -86,6 +86,8 @@ run_abbreviated = function() {
   source("join_pbp_and_sznajder.R")
   source("parse_roles.R")
   faceoffs = identify_roles(big_join, mega_dict)
+  faceoffs = identify_faceoff_winners(faceoffs)
+  faceoffs = encode_team_faceoff_status(faceoffs)
   check_leivo(faceoffs)
   temp = pbp_with_role %>%
     filter(event_player_1 == 'NAZEM.KADRI')
