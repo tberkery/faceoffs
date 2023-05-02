@@ -89,13 +89,32 @@ run_abbreviated = function() {
   faceoffs = encode_team_faceoff_status(faceoffs)
   check_leivo(faceoffs)
   dataset = get_role_encoded_stats_updated(faceoffs, mega_dict)
+  dataset = subset_relevant_cols(dataset)
+  source("impute_data.R")
+  
+  dataset_imputed = dataset %>%
+    mutate(Win_F1 = GAR_Win_F1,
+           Win_F2 = GAR_Win_F2,
+           Win_F3 = GAR_Win_F3,
+           Win_D1 = GAR_Win_D1,
+           Win_D2 = GAR_Win_D2,
+           Lose_F1 = GAR_Lose_F1,
+           Lose_F2 = GAR_Lose_F2,
+           Lose_F3 = GAR_Lose_F3,
+           Lose_D1 = GAR_Lose_D1,
+           Lose_D2 = GAR_Lose_D2
+           )
+  
+  dataset_imputed = impute_data(dataset_imputed)
+  check_leivo(dataset)
+  
+  
+  
   source("join_pbp_and_sznajder.R")
   dataset %>% write_csv("new_dataset_updated_2.csv")
   dataset = subset_relevant_cols(dataset)
   check_leivo(dataset)
-  source("impute_data.R")
-  dataset = impute_data(dataset)
-  check_leivo(dataset)
+  
   source("broaden_role.R")
   data_broadened_role = broaden_role(dataset)
   check_leivo(data_broadened_role)

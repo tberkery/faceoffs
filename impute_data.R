@@ -138,7 +138,9 @@ new_df = dataset %>%
     Win_F2 = Winner_F2,
     Win_F3 = Winner_F3,
     Win_D1 = Winner_D1,
-    Win_D2 = Winner_D2) %>%
+    Win_D2 = Winner_D2) 
+
+new_df = dataset %>%
   mutate(Win_F1_Perc = apply(as_tibble(Win_F1), 2, function(x) ecdf(x)(x) * 100)[,'value'],
          Win_F2_Perc = apply(as_tibble(Win_F2), 2, function(x) ecdf(x)(x) * 100)[,'value'],
          Win_F3_Perc = apply(as_tibble(Win_F3), 2, function(x) ecdf(x)(x) * 100)[,'value'],
