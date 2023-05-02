@@ -89,10 +89,16 @@ run_abbreviated = function() {
   faceoffs = encode_team_faceoff_status(faceoffs)
   check_leivo(faceoffs)
   dataset = get_role_encoded_stats_updated(faceoffs, mega_dict)
-  dataset = subset_relevant_cols(dataset)
-  source("impute_data.R")
-  
-  dataset_imputed = dataset %>%
+  remove_cols = c('session', 'game_date', 'event_description', 'event_length', 'num_on', 'num_off', 'players_on', 'players_off', 
+                  'home_on_1', 'home_on_2', 'home_on_3', 'home_on_4', 'home_on_5', 'home_on_6','home_on_7', 'away_on_1', 'away_on_2', 'away_on_3', 'away_on_4', 
+                  'away_on_5', 'away_on_6','away_on_7', 'home_goalie', 'away_goalie', 'pbp_distance', 'pred_goal', 'is_pp', 'event_zone.y', 'zone_change_time', 'zone_time')
+  dataset = dataset %>%
+    select(-any_of(remove_cols)) %>%
+    filter(game_strength_state == '5v5')
+  source("impute_perentile.R")
+  replacement_thresholds = determine_thresholds_via_percentile(dataset, 0.2)
+  dataset_imputed = impute_by_percentile_threshold(dataset, replacement_thresholds)
+  dataset_imputed = dataset_imputed %>%
     mutate(Win_F1 = GAR_Win_F1,
            Win_F2 = GAR_Win_F2,
            Win_F3 = GAR_Win_F3,
@@ -102,12 +108,9 @@ run_abbreviated = function() {
            Lose_F2 = GAR_Lose_F2,
            Lose_F3 = GAR_Lose_F3,
            Lose_D1 = GAR_Lose_D1,
-           Lose_D2 = GAR_Lose_D2
-           )
-  
-  dataset_imputed = impute_data(dataset_imputed)
-  check_leivo(dataset)
-  
+           Lose_D2 = GAR_Lose_D2)
+  source("broaden_role.R")
+  dataset_broadened = broaden_role(dataset_imputed)
   
   
   source("join_pbp_and_sznajder.R")
