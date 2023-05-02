@@ -8,7 +8,8 @@ group_roles = function(dataset) {
   general_cols = general_cols[-1] # drop API ID
   col = general_cols[[1]]
   dataset_updated = data
-  general_cols = c('iCF', 'iFF')
+  dataset_output = data %>% select(1:38)
+  #general_cols = c('iCF', 'iFF')
   for (col in general_cols) {
     win_f1_col = paste0(col, "_Win_F1")
     win_f2_col = paste0(col, "_Win_F2")
@@ -32,7 +33,7 @@ group_roles = function(dataset) {
     
     dataset_temp = dataset_updated %>%
       mutate(across(all_of(cols), ~as.numeric(.))) %>%
-      select(cols)
+      select(all_of(cols))
     
     dataset_temp[[col_win_all]] = dataset_temp[[win_f1_col]] + dataset_temp[[win_f2_col]] + dataset_temp[[win_f3_col]] + dataset_temp[[win_d1_col]] + dataset_temp[[win_d2_col]]
     dataset_temp[[col_win_f]] = dataset_temp[[win_f1_col]] + dataset_temp[[win_f2_col]] + dataset_temp[[win_f3_col]]
@@ -42,25 +43,21 @@ group_roles = function(dataset) {
     dataset_temp[[col_lose_f]] = dataset_temp[[lose_f1_col]] + dataset_temp[[lose_f2_col]] + dataset_temp[[lose_f3_col]]
     dataset_temp[[col_lose_d]] = dataset_temp[[lose_d1_col]] + dataset_temp[[lose_d2_col]]
     
-    dataset_updated[[col_win_all]] = dataset_temp[[col_win_all]]
-    dataset_updated[[col_win_f]] = dataset_temp[[col_win_f]]
-    dataset_updated[[col_win_d]] = dataset_temp[[col_win_d]]
-    dataset_updated[[col_lose_all]] = dataset_temp[[col_lose_all]]
-    dataset_updated[[col_lose_f]] = dataset_temp[[col_lose_f]]
-    dataset_updated[[col_lose_d]] = dataset_temp[[col_lose_d]]
+    dataset_output[[col_win_all]] = dataset_temp[[col_win_all]]
+    dataset_output[[col_win_f]] = dataset_temp[[col_win_f]]
+    dataset_output[[col_win_d]] = dataset_temp[[col_win_d]]
+    dataset_output[[col_lose_all]] = dataset_temp[[col_lose_all]]
+    dataset_output[[col_lose_f]] = dataset_temp[[col_lose_f]]
+    dataset_output[[col_lose_d]] = dataset_temp[[col_lose_d]]
     
-    # if (grepl("%", col) | grepl("_per_", col) | grepl("_Per_", col) | grepl("_Percent_", col) | grepl("_percent_", col) | grepl("Draft", col)) {
-    #   dataset_temp = dataset_temp %>%
-    #     mutate(!!col_win_all := (!!win_f1_col + !!win_f2_col + !!win_f3_col + !!win_d1_col + !!win_d2_col) / 5) %>%
-    #     mutate(!!col_win_f := (!!win_f1_col + !!win_f2_col + !!win_f3_col) / 3) %>%
-    #     mutate(!!col_win_d := (!!win_d1_col + !!win_d2_col) / 2) %>%
-    #     mutate(!!col_lose_all := (!!lose_f1_col + !!lose_f2_col + !!lose_f3_col + !!lose_d1_col + !!lose_d2_col) / 5) %>%
-    #     mutate(!!col_lose_f := (!!lose_f1_col + !!lose_f2_col + !!lose_f3_col) / 3) %>%
-    #     mutate(!!col_lose_d := (!!lose_d1_col + !!lose_d2_col) / 2)
-    #   
-    #   
-    # } else {
-    # 
-    # }
+    if (grepl("%", col) | grepl("_per_", col) | grepl("_Per_", col) | grepl("_Percent_", col) | grepl("_percent_", col) | grepl("Draft", col)) {
+      dataset_output[[col_win_all]] = dataset_output[[col_win_all]] / 5
+      dataset_output[[col_win_f]] = dataset_output[[col_win_f]] / 3
+      dataset_output[[col_win_d]] = dataset_output[[col_win_d]] / 2
+      dataset_output[[col_lose_all]] = dataset_output[[col_lose_all]] / 5
+      dataset_output[[col_lose_f]] = dataset_output[[col_lose_f]] / 3
+      dataset_output[[col_lose_d]] = dataset_output[[col_lose_d]] / 2
+    }
   }
+  return(dataset_output)
 }
