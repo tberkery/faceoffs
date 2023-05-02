@@ -109,8 +109,8 @@ run_abbreviated = function() {
            Lose_F3 = GAR_Lose_F3,
            Lose_D1 = GAR_Lose_D1,
            Lose_D2 = GAR_Lose_D2)
-  source("broaden_role.R")
-  dataset_broadened = broaden_role(dataset_imputed)
+  source("grouped_role.R")
+  dataset_broadened = group_roles(dataset_imputed)
   
   
   source("join_pbp_and_sznajder.R")
