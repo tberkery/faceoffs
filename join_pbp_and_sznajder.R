@@ -231,16 +231,16 @@ condition_updated = function(big_join, dataset_imputed) {
     left_join(faceoffs_id, by = c('season', 'game_id', 'game_seconds', 'event_type')) %>%
     mutate(ID = na.locf(ID, fromLast = T, na.rm = F)) %>%
     group_by(ID) %>%
-    mutate(winner_attributable_xg = sum(winner_attributable_xg, na.rm = TRUE),
-           loser_attributable_xg = sum(loser_attributable_xg, na.rm = TRUE))
+    mutate(winner_xg = sum(winner_attributable_xg, na.rm = TRUE),
+           loser_xg = sum(loser_attributable_xg, na.rm = TRUE))
   temp = xg_info_id %>%
     ungroup() %>%
-    select(season, game_id, ID, game_date, game_period, game_seconds, event_type, event_team, last_faceoff_winner, winner_attributable_xg, loser_attributable_xg, pred_goal, event_player_1, event_player_2, event_description)
+    select(season, game_id, ID, game_date, game_period, game_seconds, event_type, event_team, last_faceoff_winner, winner_xg, loser_xg, pred_goal, event_player_1, event_player_2, event_description)
   faceoffs_full_new = faceoffs_with_player_roles %>%
     left_join(xg_info_id, by = c('game_id' = 'game_id', 'season' = 'season', 'game_seconds', 'event_type')) %>%
     filter(event_type == 'FAC') %>%
     mutate(winner_attributable_xg = lag(winner_attributable_xg),
            loser_attributable_xg = lag(loser_attributable_xg))
   temp2 = faceoffs_full_new %>% 
-    select(game_id, ID, game_seconds, event_type, event_team, last_faceoff_winner, winner_attributable_xg, loser_attributable_xg)
+    select(game_id, ID, game_seconds, event_type, event_team, last_faceoff_winner, winner_xg, loser_xg)
 }
