@@ -95,7 +95,7 @@ run_abbreviated = function() {
   dataset = dataset %>%
     select(-any_of(remove_cols)) %>%
     filter(game_strength_state == '5v5')
-  source("impute_perentile.R")
+  source("impute_percentile.R")
   replacement_thresholds = determine_thresholds_via_percentile(dataset, 0.2)
   dataset_imputed = impute_by_percentile_threshold(dataset, replacement_thresholds)
   dataset_imputed = dataset_imputed %>%
@@ -109,6 +109,10 @@ run_abbreviated = function() {
            Lose_F3 = GAR_Lose_F3,
            Lose_D1 = GAR_Lose_D1,
            Lose_D2 = GAR_Lose_D2)
+  
+  source("join_pbp_and_sznajder.R")
+  dataset_with_objective = condition_updated(dataset_broadened)
+  
   source("grouped_role.R")
   dataset_broadened = group_roles(dataset_imputed)
   
