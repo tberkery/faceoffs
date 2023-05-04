@@ -121,6 +121,7 @@ run_abbreviated = function() {
   replacement_thresholds = determine_thresholds_via_percentile(data_with_microstats, 0.2)
   dataset_imputed = impute_by_percentile_threshold(data_with_microstats, replacement_thresholds)
   print(nrow(dataset_imputed %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
+  
   dataset_imputed = dataset_imputed %>%
     mutate(Win_F1 = GAR_Win_F1,
            Win_F2 = GAR_Win_F2,
@@ -133,37 +134,38 @@ run_abbreviated = function() {
            Lose_D1 = GAR_Lose_D1,
            Lose_D2 = GAR_Lose_D2)
   
+  # microstats_colnames = c()
+  # statuses = c("Win", "Lose")
+  # positions = c("F1", "F2", "F3", "D1", "D2")
+  # for (status in statuses) {
+  #   for (pos in positions) {
+  #     for (col_type in colnames(microstats)) {
+  #       if (col_type != 'Player') {
+  #         new_col_name = paste0(col_type, "_", status, "_", pos)
+  #         microstats_colnames = c(microstats_colnames, new_col_name)
+  #       }
+  #     }
+  #   }
+  # }
+  
+  # added_stats = dataset_imputed %>%
+  #   ungroup() %>%
+  #   select(game_id, season, event_type, game_seconds, any_of(microstats_colnames))
+  
   source("join_pbp_and_sznajder.R")
   dataset_with_objective = condition_updated(big_join, dataset_imputed)
   
+  # dataset_with_objective_and_microstats = dataset_with_objective %>%
+  #   left_join(added_stats, by = c("game_id", "season", "event_type", "game_seconds"))
   
   source("grouped_role.R")
   dataset_broadened = group_roles(dataset_with_objective)
   
-  
-  source("join_pbp_and_sznajder.R")
-  dataset %>% write_csv("new_dataset_updated_2.csv")
-  dataset = subset_relevant_cols(dataset)
-  check_leivo(dataset)
-  
-  source("broaden_role.R")
-  data_broadened_role = broaden_role(dataset)
-  check_leivo(data_broadened_role)
-  data_with_microstats = data_broadened_role %>%
-    mutate(year = as.numeric(str_sub(season_x, 1, 4))) %>%
-    left_join(microstats, by = c('Player_Win_F1' = 'Player', 'year')) %>%
-    left_join(microstats, by = c('Player_Win_F2' = 'Player', 'year'), suffix = c('_Win_F1', '_Win_F2')) %>%
-    left_join(microstats, by = c('Player_Win_F3' = 'Player', 'year')) %>%
-    left_join(microstats, by = c('Player_Win_D1' = 'Player', 'year'), suffix = c('_Win_F3', '_Win_D1')) %>%
-    left_join(microstats, by = c('Player_Win_D2' = 'Player', 'year')) %>%
-    left_join(microstats, by = c('Player_Lose_F1' = 'Player', 'year'), suffix = c('_Win_D2', '_Lose_F1')) %>%
-    left_join(microstats, by = c('Player_Lose_F2' = 'Player', 'year')) %>%
-    left_join(microstats, by = c('Player_Lose_F3' = 'Player', 'year'), suffix = c('_Lose_F2', '_Lose_F3')) %>%
-    left_join(microstats, by = c('Player_Lose_D1' = 'Player', 'year')) %>%
-    left_join(microstats, by = c('Player_Lose_D2' = 'Player', 'year'), suffix = c('_Lose_D1', '_Lose_D2'))
-  check_leivo(data_with_microstats)
-  data_with_microstats = data_with_microstats %>%
-    mutate(net_xg = winner_xg + loser_xg) %>%
+  data = data %>%
+    mutate(net_xg = winner_xg - loser_xg) %>%
+    mutate(faceoff_type = case_when(
+      
+    ))
     mutate(faceoff_type = case_when(
       event_zone != 'Neu' &  ((last_faceoff_winner == home_team & home_zone == 'Off') | (last_faceoff_winner != home_team & home_zone == 'Def')) ~ 'Off zone won by Off team',
       event_zone != 'Neu' &  ((last_faceoff_winner != home_team & home_zone == 'Off') | (last_faceoff_winner == home_team & home_zone == 'Def')) ~ 'Def zone won by Def team',
@@ -171,9 +173,9 @@ run_abbreviated = function() {
       event_zone != 'Neu' &  ((last_faceoff_winner != home_team & home_zone == 'Def') | (last_faceoff_winner == home_team & home_zone == 'Off')) ~ 'Off zone won by Off team',
       TRUE ~ 'other'
     )) %>%
-    select(faceoff_type, event_zone, last_faceoff_winner, event_team, home_team, away_team, home_zone, where(is.numeric)) %>%
-    drop_na()
-  check_leivo(data_with_microstats)
+      select(faceoff_type, event_zone, last_faceoff_winner, event_team, home_team, away_team, home_zone, where(is.numeric)) %>%
+      drop_na()
+  
   model_name = ''
 }
 
