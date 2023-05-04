@@ -101,9 +101,25 @@ run_abbreviated = function() {
     select(-any_of(remove_cols)) %>%
     filter(game_strength_state == '5v5')
   print(nrow(dataset %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
+  
+  
+  microstats = read_csv("microstats.csv")
+  data_with_microstats = dataset %>%
+    mutate(year = as.numeric(str_sub(season, 1, 4))) %>%
+    left_join(microstats, by = c('Player_Win_F1' = 'Player', 'year')) %>%
+    left_join(microstats, by = c('Player_Win_F2' = 'Player', 'year'), suffix = c('_Win_F1', '_Win_F2')) %>%
+    left_join(microstats, by = c('Player_Win_F3' = 'Player', 'year')) %>%
+    left_join(microstats, by = c('Player_Win_D1' = 'Player', 'year'), suffix = c('_Win_F3', '_Win_D1')) %>%
+    left_join(microstats, by = c('Player_Win_D2' = 'Player', 'year')) %>%
+    left_join(microstats, by = c('Player_Win_F1' = 'Player', 'year'), suffix = c('_Win_D2', '_Lose_F1')) %>%
+    left_join(microstats, by = c('Player_Win_F2' = 'Player', 'year')) %>%
+    left_join(microstats, by = c('Player_Win_F3' = 'Player', 'year'), suffix = c('_Lose_F2', '_Lose_F3')) %>%
+    left_join(microstats, by = c('Player_Win_D1' = 'Player', 'year')) %>%
+    left_join(microstats, by = c('Player_Win_D2' = 'Player', 'year'), suffix = c('_Lose_D1', '_Lose_D2'))
+  
   source("impute_percentile.R")
-  replacement_thresholds = determine_thresholds_via_percentile(dataset, 0.2)
-  dataset_imputed = impute_by_percentile_threshold(dataset, replacement_thresholds)
+  replacement_thresholds = determine_thresholds_via_percentile(data_with_microstats, 0.2)
+  dataset_imputed = impute_by_percentile_threshold(data_with_microstats, replacement_thresholds)
   print(nrow(dataset_imputed %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
   dataset_imputed = dataset_imputed %>%
     mutate(Win_F1 = GAR_Win_F1,
@@ -118,10 +134,11 @@ run_abbreviated = function() {
            Lose_D2 = GAR_Lose_D2)
   
   source("join_pbp_and_sznajder.R")
-  dataset_with_objective = condition_updated(dataset_broadened)
+  dataset_with_objective = condition_updated(big_join, dataset_imputed)
+  
   
   source("grouped_role.R")
-  dataset_broadened = group_roles(dataset_imputed)
+  dataset_broadened = group_roles(dataset_with_objective)
   
   
   source("join_pbp_and_sznajder.R")
