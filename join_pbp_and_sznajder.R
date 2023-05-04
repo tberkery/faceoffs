@@ -193,8 +193,8 @@ condition_updated = function(big_join, dataset_imputed) {
   faceoffs_with_xg = dataset_imputed %>%
     select(-event_index, -game_period, -clock_time, -event_type, -event_zone, -home_team, -away_team, -home_score, -away_score, -game_score_state, -game_strength_state, face_index, -pen_index, -shift_index, -pbp, -teams) %>%
     left_join(faceoffs_data, by = c('season' = 'season', 'game_id' = 'game_id', 'game_seconds'))
-    #inner_join(same_games, by = c('game_id' = 'game_id'))
-
+  #inner_join(same_games, by = c('game_id' = 'game_id'))
+  
   faceoffs_with_player_roles = faceoffs_with_xg %>%
     select(game_id, season, game_seconds, event_type,
            Win_F1_Name, Win_F2_Name, Win_F3_Name, Win_D1_Name, Win_D2_Name, Win_G_Name,
@@ -218,7 +218,7 @@ condition_updated = function(big_join, dataset_imputed) {
     mutate(end_faceoff_attribution = na.locf(end_faceoff_attribution, fromLast = T, na.rm = F)) %>%
     mutate(winner_attributable_xg = ifelse(event_team == last_faceoff_winner & pred_goal > 0 & game_seconds > last_faceoff_time & game_seconds < end_faceoff_attribution, pred_goal, 0),
            loser_attributable_xg = 0) %>%
-           #loser_attributable_xg = ifelse(event_team != last_faceoff_winner & pred_goal > 0 & game_seconds > last_faceoff_time & game_seconds < end_faceoff_attribution, pred_goal, 0)) %>%
+    #loser_attributable_xg = ifelse(event_team != last_faceoff_winner & pred_goal > 0 & game_seconds > last_faceoff_time & game_seconds < end_faceoff_attribution, pred_goal, 0)) %>%
     mutate(winner_xg = lag(winner_attributable_xg),
            loser_xg = lag(loser_attributable_xg))
   
@@ -227,7 +227,7 @@ condition_updated = function(big_join, dataset_imputed) {
     filter(event_type == 'FAC') %>%
     group_by(season, game_id, game_seconds, event_type) %>%
     mutate(ID = cur_group_id())
-    
+  
   xg_info_id = xg_info %>%
     left_join(faceoffs_id, by = c('season', 'game_id', 'game_seconds', 'event_type')) %>%
     filter(event_zone.x != 'Neu') %>%
@@ -235,14 +235,25 @@ condition_updated = function(big_join, dataset_imputed) {
     group_by(ID) %>%
     mutate(winner_xg = sum(winner_attributable_xg, na.rm = TRUE),
            loser_xg = sum(loser_attributable_xg, na.rm = TRUE)) %>%
+    ungroup()
   temp = xg_info_id %>%
     ungroup() %>%
     select(season, game_id, ID, game_date, game_period, game_seconds, event_type, event_team, last_faceoff_winner, winner_xg, loser_xg, pred_goal, event_player_1, event_player_2, event_description)
-  faceoffs_full_new = faceoffs_with_player_roles %>%
-    left_join(xg_info_id, by = c('game_id' = 'game_id', 'season' = 'season', 'game_seconds', 'event_type')) %>%
+  faceoffs_full_new = xg_info_id %>%
+    left_join(faceoffs_with_player_roles, by = c('game_id' = 'game_id', 'season' = 'season', 'game_seconds', 'event_type')) %>%
     filter(event_type == 'FAC') %>%
     mutate(winner_xg = lead(winner_xg),
            loser_xg = lead(loser_xg))
   temp2 = faceoffs_full_new %>% 
     select(game_id, ID, game_seconds, event_type, event_team, event_zone.x, last_faceoff_winner, event_description, winner_xg, loser_xg)
+  
+  faceoffs_objective_summary = faceoffs_full_new %>%
+    select(game_id, season, game_seconds, event_type, winner_xg, loser_xg)
+  data_with_objective = dataset_imputed_with_game_date %>%
+    left_join(faceoffs_objective_summary, by = c('game_id', 'season', 'game_seconds', 'event_type')) %>%
+    filter(event_zone != 'Neu') %>%
+    drop_na()
+  temp = data_with_objective %>%
+    select(season, game_id, game_date, game_period, game_seconds, event_type, event_team, winner_xg, loser_xg, event_player_1, event_player_2)
+  return(data_with_objective)
 }
