@@ -27,10 +27,8 @@ identify_roles = function(big_join, mega_dict) {
     left_join(player_season_positions, by = c('away_on_4' = 'EH_ID'), suffix = c('_away_on_3', '_away_on_4')) %>%
     left_join(player_season_positions, by = c('away_on_5' = 'EH_ID')) %>%
     left_join(player_season_positions, by = c('away_on_4' = 'EH_ID'), suffix = c('_away_on_5', '_away_on_6'))
-  
   faceoffs = faceoffs %>%
     filter_faceoffs()
-  
   # This code swaps (if needed) the goalie to the _on_6 column (for home and away). 
   # Only guaranteed and designed to work for 5v5 situations
   statuses = c("home", "away")

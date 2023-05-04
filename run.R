@@ -82,22 +82,29 @@ load_sznajder_2022 = function() {
 
 run_abbreviated = function() {
   big_join = read_csv("updated_big_join.csv")
+  print(nrow(big_join %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
   mega_dict = assemble_stats()
   source("parse_roles.R")
   faceoffs = identify_roles(big_join, mega_dict)
+  print(nrow(faceoffs %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
   faceoffs = identify_faceoff_winners(faceoffs)
+  print(nrow(faceoffs %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
   faceoffs = encode_team_faceoff_status(faceoffs)
+  print(nrow(faceoffs %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
   check_leivo(faceoffs)
   dataset = get_role_encoded_stats_updated(faceoffs, mega_dict)
   remove_cols = c('session', 'game_date', 'event_description', 'event_length', 'num_on', 'num_off', 'players_on', 'players_off', 
                   'home_on_1', 'home_on_2', 'home_on_3', 'home_on_4', 'home_on_5', 'home_on_6','home_on_7', 'away_on_1', 'away_on_2', 'away_on_3', 'away_on_4', 
                   'away_on_5', 'away_on_6','away_on_7', 'home_goalie', 'away_goalie', 'pbp_distance', 'pred_goal', 'is_pp', 'event_zone.y', 'zone_change_time', 'zone_time')
+  print(nrow(dataset %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
   dataset = dataset %>%
     select(-any_of(remove_cols)) %>%
     filter(game_strength_state == '5v5')
+  print(nrow(dataset %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
   source("impute_percentile.R")
   replacement_thresholds = determine_thresholds_via_percentile(dataset, 0.2)
   dataset_imputed = impute_by_percentile_threshold(dataset, replacement_thresholds)
+  print(nrow(dataset_imputed %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
   dataset_imputed = dataset_imputed %>%
     mutate(Win_F1 = GAR_Win_F1,
            Win_F2 = GAR_Win_F2,
