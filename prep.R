@@ -21,7 +21,7 @@ data = read_csv("all_df_updated.csv")
 
 data = read_csv("recoded_roles_updated.csv")
 data = data %>%
-  mutate(net_xg = winner_xg + loser_xg) %>%
+  mutate(net_xg = winner_xg - loser_xg)
   mutate(faceoff_type = case_when(
     event_zone != 'Neu' &  ((last_faceoff_winner == home_team & home_zone == 'Off') | (last_faceoff_winner != home_team & home_zone == 'Def')) ~ 'Off zone won by Off team',
     event_zone != 'Neu' &  ((last_faceoff_winner != home_team & home_zone == 'Off') | (last_faceoff_winner == home_team & home_zone == 'Def')) ~ 'Def zone won by Def team',

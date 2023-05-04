@@ -67,7 +67,7 @@ determine_thresholds_via_percentile = function(dataset, percentile_threshold) {
 
 impute_by_percentile_threshold = function(dataset, replacement_thresholds) {
   dataset_new = dataset %>%
-    select(-c(coords_x, coords_y, home_zone, event_distance, event_angle, home_zonestart, starts_with("Pos_")))
+    select(-c(coords_x, coords_y, event_distance, event_angle, home_zonestart, starts_with("Pos_")))
   for (i in 1:nrow(replacement_thresholds)) {
     metric <- replacement_thresholds[i, "metric"]
     print(metric)
