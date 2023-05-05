@@ -1,26 +1,27 @@
 library(tidyverse)
 
-data = read_csv("training.csv")
 microstats = read_csv("microstats.csv")
+data = dataset_broadened
+
 data_with_microstats = data %>%
-  mutate(year = as.numeric(str_sub(season_x, 1, 4))) %>%
-  left_join(microstats, by = c('Player_Win_F1' = 'Player', 'year')) %>%
-  left_join(microstats, by = c('Player_Win_F2' = 'Player', 'year'), suffix = c('_Win_F1', '_Win_F2')) %>%
-  left_join(microstats, by = c('Player_Win_F3' = 'Player', 'year')) %>%
-  left_join(microstats, by = c('Player_Win_D1' = 'Player', 'year'), suffix = c('_Win_F3', '_Win_D1')) %>%
-  left_join(microstats, by = c('Player_Win_D2' = 'Player', 'year')) %>%
-  left_join(microstats, by = c('Player_Lose_F1' = 'Player', 'year'), suffix = c('_Win_D2', '_Lose_F1')) %>%
-  left_join(microstats, by = c('Player_Lose_F2' = 'Player', 'year')) %>%
-  left_join(microstats, by = c('Player_Lose_F3' = 'Player', 'year'), suffix = c('_Lose_F2', '_Lose_F3')) %>%
-  left_join(microstats, by = c('Player_Lose_D1' = 'Player', 'year')) %>%
-  left_join(microstats, by = c('Player_Lose_D2' = 'Player', 'year'), suffix = c('_Lose_D1', '_Lose_D2'))
+  mutate(year = as.numeric(str_sub(season, 1, 4))) %>%
+  left_join(microstats, by = c('Win_F1_Name' = 'Player', 'year')) %>%
+  left_join(microstats, by = c('Win_F2_Name' = 'Player', 'year'), suffix = c('_Win_F1', '_Win_F2')) %>%
+  left_join(microstats, by = c('Win_F3_Name' = 'Player', 'year')) %>%
+  left_join(microstats, by = c('Win_D1_Name' = 'Player', 'year'), suffix = c('_Win_F3', '_Win_D1')) %>%
+  left_join(microstats, by = c('Win_D2_Name' = 'Player', 'year')) %>%
+  left_join(microstats, by = c('Lose_F1_Name' = 'Player', 'year'), suffix = c('_Win_D2', '_Lose_F1')) %>%
+  left_join(microstats, by = c('Lose_F2_Name' = 'Player', 'year')) %>%
+  left_join(microstats, by = c('Lose_F3_Name' = 'Player', 'year'), suffix = c('_Lose_F2', '_Lose_F3')) %>%
+  left_join(microstats, by = c('Lose_D1_Name' = 'Player', 'year')) %>%
+  left_join(microstats, by = c('Lose_D2_Name' = 'Player', 'year'), suffix = c('_Lose_D1', '_Lose_D2'))
   
   
 data = read_csv("all_df_updated.csv")
 
 data = read_csv("recoded_roles_updated.csv")
 data = data %>%
-  mutate(net_xg = winner_xg + loser_xg) %>%
+  mutate(net_xg = winner_xg - loser_xg)
   mutate(faceoff_type = case_when(
     event_zone != 'Neu' &  ((last_faceoff_winner == home_team & home_zone == 'Off') | (last_faceoff_winner != home_team & home_zone == 'Def')) ~ 'Off zone won by Off team',
     event_zone != 'Neu' &  ((last_faceoff_winner != home_team & home_zone == 'Off') | (last_faceoff_winner == home_team & home_zone == 'Def')) ~ 'Def zone won by Def team',
