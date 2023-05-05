@@ -77,7 +77,7 @@ impute_by_percentile_threshold = function(dataset, replacement_thresholds) {
   dataset_imputed = dataset_new %>% select(-contains("replacement"))
   na_cols <- colSums(is.na(dataset_imputed)) > 0
   remove_cols <- colnames(dataset_imputed)[na_cols]
-  remove_cols = setdiff(remove_cols, c("event_zone", "event_team"))
+  remove_cols = setdiff(remove_cols, c("event_zone", "event_team", "home_zone", "last_faceoff_winner", "home_team"))
   dataset_imputed = dataset_imputed %>%
     select(-all_of(remove_cols))
   dataset_imputed_no_nas = dataset_imputed %>% drop_na() # this line atm removes just 1 out of 298,411 observations!
