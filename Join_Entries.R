@@ -1,8 +1,11 @@
 #Enter Zone Exits File Name Here
 
 library(tidyverse)
+library(anytime)
 year = 2017
-join_entries = function(year, zone_entires, zone_exits) {
+start_year = year
+end_year = 2022
+join_entries = function(start_year, end_year, zone_entries, zone_exits) {
   #Enter Zone Entries File Name Here
   #zone_entries_sample <- read_csv("zone_entries_sample2.csv") %>%
   zone_entries_sample = zone_entries %>%
@@ -51,9 +54,17 @@ join_entries = function(year, zone_entires, zone_exits) {
   
   #Enter ZEH PBP Data Here
   pbp = read_csv(paste0('EH_pbp_query_', year, year + 1, '.csv')) %>%
-    rbind(read_csv(paste0('EH_pbp_query_', year + 1, year + 2, '.csv'))) %>%
+    #rbind(read_csv(paste0('EH_pbp_query_', year + 1, year + 2, '.csv'))) %>%
     mutate(pbp = 1,
-           teams = paste(pmin(home_team,away_team), pmax(home_team,away_team), sep = ','))
+           teams = paste(pmin(home_team,away_team), pmax(home_team,away_team), sep = ','),
+           game_date = anydate(game_date))
+  for (iterative_year in (start_year+1):end_year) {
+    pbp_iter = read_csv(paste0('EH_pbp_query_', iterative_year, iterative_year + 1, '.csv')) %>%
+      mutate(pbp = 1,
+             teams = paste(pmin(home_team,away_team), pmax(home_team,away_team), sep = ','),
+             game_date = anydate(game_date))
+    pbp = rbind(pbp, pbp_iter)
+  }
   
   entries_games = zone_entries_sample %>%
     group_by(game_date, teams) %>%
@@ -72,6 +83,11 @@ join_entries = function(year, zone_entires, zone_exits) {
               by = c('game_date' = 'game_date',
                      'teams' = 'teams')) 
   
+  joined = joined %>%
+    mutate(game_date = anydate(game_date))
+  
+  pbp = pbp %>%
+    mutate(game_date = anydate(game_date))
   get_pbp_game_match = function(joined, pbp){
     for (i in 1:nrow(joined)){
       print(i)
@@ -125,11 +141,19 @@ join_entries = function(year, zone_entires, zone_exits) {
     select(-game_id.y) %>%
     rename(game_id = game_id.x)
   
+  entries_games2_temp = entries_games2 %>%
+    mutate(game_date = substr(game_date, 1, 10),
+           clock_time = substr(clock_time, 1, 5))
+           
+  exits_games2_temp = exits_games2 %>%
+    mutate(game_date = substr(game_date, 1, 10),
+           clock_time = substr(clock_time, 1, 5))
+  
   big_join = pbp %>%
     mutate(game_date = substr(game_date, 1, 10),
            clock_time = substr(clock_time, 1, 5)) %>%
-    bind_rows(entries_games2) %>%
-    bind_rows(exits_games2) %>%
+    bind_rows(entries_games2_temp) %>%
+    bind_rows(exits_games2_temp) %>%
     group_by(game_id) %>%
     arrange(game_id, game_seconds)
   
@@ -137,3 +161,4 @@ join_entries = function(year, zone_entires, zone_exits) {
   #write_csv(big_join, 'zone_entries_joined.csv')
   return(big_join)
 }
+
