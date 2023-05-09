@@ -19,7 +19,7 @@ read_conditioned_pbp = function(start_year, end_year) {
   return(pbp_conditioned)
 }
 
-join_by_role = function() {
+join_by_role = function(start_year, end_year) {
   EH_master = read_EH_master()
   pbp_conditioned = read_conditioned_pbp(2012, 2018) %>% 
     filter(!is.na(away_on_6)) %>% 
