@@ -9,7 +9,6 @@ group_roles = function(dataset) {
   col = general_cols[[1]]
   dataset_updated = data
   dataset_output = data %>% select(1:38, ends_with('xg'))
-  #general_cols = c('iCF', 'iFF')
   for (col in general_cols) {
     win_f1_col = paste0(col, "_Win_F1")
     win_f2_col = paste0(col, "_Win_F2")

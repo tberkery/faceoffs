@@ -155,18 +155,19 @@ condition_updated = function(big_join, dataset_imputed) {
   dataset_imputed_with_game_date = dataset_imputed %>%
     inner_join(game_date_dict, by = c('season', 'game_id'))
   faceoffs_data = big_join %>%
+    filter(!(event_type == 'ZONE_ENTRY' & str_detect(event_description, "FAC entry") == TRUE)) %>% # ignore faceoff driven zone entries (as tracked by Sznajder)
     mutate(zone_change_time = 
              ifelse(event_type == 'ZONE_EXIT' |
                       event_type == 'ZONE_ENTRY' |
                       event_type == 'STOP', 
                     game_seconds, NA),
-           #Taking out entries that occur as the faceoff happens
-           zone_change_time = ifelse(
-             (event_type == 'ZONE_ENTRY' | event_type == 'ZONE_EXIT') &
-               lag(event_type) == 'FAC' &
-               game_seconds == lag(game_seconds),
-             NA,
-             zone_change_time),
+           # #Taking out entries that occur as the faceoff happens
+           # zone_change_time = ifelse(
+           #   (event_type == 'ZONE_ENTRY' | event_type == 'ZONE_EXIT') &
+           #     lag(event_type) == 'FAC' &
+           #     game_seconds == lag(game_seconds),
+           #   NA,
+           #   zone_change_time),
            end_faceoff_attribution =
              na.locf(zone_change_time, fromLast = TRUE, na.rm = F),
            end_faceoff_attribution = ifelse(end_faceoff_attribution > lag(end_faceoff_attribution) & event_type != 'FAC', lag(end_faceoff_attribution), end_faceoff_attribution),
@@ -215,9 +216,10 @@ condition_updated = function(big_join, dataset_imputed) {
            last_faceoff_team_temp = ifelse(event_type == "FAC", event_team, NA)) %>%
     mutate(last_faceoff_time = na.locf(last_faceoff_time_temp, na.rm = F),
            last_faceoff_winner = na.locf(last_faceoff_team_temp, na.rm = F)) %>%
-    mutate(end_faceoff_attribution = na.locf(end_faceoff_attribution, fromLast = T, na.rm = F)) %>%
+    #mutate(end_faceoff_attribution = ifelse(event_type != "FAC", NA, end_faceoff_attribution)) %>%
+    mutate(end_faceoff_attribution = na.locf(end_faceoff_attribution, na.rm = F)) %>%
     mutate(winner_attributable_xg = ifelse(event_team == last_faceoff_winner & pred_goal > 0 & game_seconds > last_faceoff_time & game_seconds < end_faceoff_attribution, pred_goal, 0),
-           loser_attributable_xg = 0) %>%
+           loser_attributable_xg = ifelse(event_team != last_faceoff_winner & pred_goal > 0 & game_seconds > last_faceoff_time & game_seconds < end_faceoff_attribution, pred_goal, 0)) %>%
     #loser_attributable_xg = ifelse(event_team != last_faceoff_winner & pred_goal > 0 & game_seconds > last_faceoff_time & game_seconds < end_faceoff_attribution, pred_goal, 0)) %>%
     mutate(winner_xg = lag(winner_attributable_xg),
            loser_xg = lag(loser_attributable_xg))
