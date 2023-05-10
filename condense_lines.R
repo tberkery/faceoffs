@@ -1,27 +1,23 @@
 library(tidyverse)
 condense_to_line_matchups = function(data_all) {
-  #avg_cols = colnames(data %>% select(contains("%") | contains("_per_") | contains("_Per_") | contains("_Percent_") | contains("_percent_") | contains("Draft")))
-  #num_cols = length(colnames(data))
-  data_all = read_csv("recoded_roles_updated_with_names.csv")
-  mut_cols = colnames(data_all) %>% select(74:829) %>% select(where(is.numeric))
+  mut_cols = colnames(data_all %>% select(74:829) %>% select(where(is.numeric)))
   line_matchups = data_all %>%
-    select(season_x, Win_F1_Name, Win_F2_Name, Win_F3_Name, Win_D1_Name, Win_D2_Name,
-           Lose_F1_Name, Lose_F2_Name, Lose_F3_Name, Lose_D1_Name, Lose_D2_Name, winner_xg, loser_xg) %>%
-    mutate(num = 1) %>%
-    group_by(season_x, Win_F1_Name, Win_F2_Name, Win_F3_Name, Win_D1_Name, Win_D2_Name,
-             Lose_F1_Name, Lose_F2_Name, Lose_F3_Name, Lose_D1_Name, Lose_D2_Name) %>%
-    summarize(count = n(),
-              total = sum(num, na.rm = TRUE),
+    distinct(.keep_all = TRUE) %>%
+    rowwise() %>%
+    mutate(Win_Players = str_c(sort(c(Win_F1_Name, Win_F2_Name, Win_F3_Name, Win_D1_Name, Win_D2_Name, Win_G_Name)), collapse = ", ")) %>%
+    mutate(Lose_Players = str_c(sort(c(Lose_F1_Name, Lose_F2_Name, Lose_F3_Name, Lose_D1_Name, Lose_D2_Name, Lose_G_Name)), collapse = ", ")) %>%
+    ungroup() %>%
+    select(-ends_with("_Name")) %>%
+    select(-c(last_faceoff_winner, event_team, event_zone, home_team, away_team, home_zone,
+              game_id, event_index, game_period, game_seconds, home_score, away_score, face_index, pen_index, shift_index, pbp)) %>%
+    group_by(season, faceoff_type, Win_Players, Lose_Players) %>%
+    mutate(count = n(),
            winner_xg = mean(winner_xg, na.rm = TRUE), 
            loser_xg = mean(loser_xg, na.rm = TRUE),
-           .groups = "keep"
-           ) %>%
+           net_xg = mean(net_xg, na.rm = TRUE)) %>%
     distinct(.keep_all = TRUE) %>%
-    arrange(desc(total))
-  # data_line_matchups = data_all %>%
-  #   group_by(season_x, event_zone.x, Win_F1_Name, Win_F2_Name, Win_F3_Name, Win_D1_Name, Win_D2_Name,
-  #            Lose_F1_Name, Lose_F2_Name, Lose_F3_Name, Lose_D1_Name, Lose_D2_Name) %>%
-  #   mutate(across(all_of(mut_cols), ~mean(., na.rm = TRUE))) %>%
-  #   mutate(count = n()) %>%
-  #   distinct(.keep_all = TRUE)
+    arrange(desc(count))
+  
+  line_matchups = line_matchups %>% select(season, faceoff_type, Win_Players, Lose_Players, net_xg, count, all_of(setdiff(colnames(line_matchups), c('season', 'faceoff_type', 'Win_Players', 'Lose_Players', 'net_xg', 'count'))))
+  return(line_matchups)
 }
