@@ -171,30 +171,25 @@ run_abbreviated = function() {
       event_zone != 'Neu' &  ((last_faceoff_winner != home_team & home_zone == 'Def') | (last_faceoff_winner == home_team & home_zone == 'Off')) ~ 'Off zone won by Off team',
       TRUE ~ 'other'
     )) %>%
-    select(faceoff_type, event_zone, last_faceoff_winner, event_team, home_team, away_team, home_zone, where(is.numeric)) %>%
+    select(faceoff_type, event_zone, last_faceoff_winner, event_team, home_team, away_team, home_zone, ends_with('_Name'), where(is.numeric)) %>%
     drop_na()
-  
+  source("condense_lines.R")
+  data_line_matchups = data %>%
+    condense_to_line_matchups()
   model_name = ''
-  prep_all_model(data)
+  prep_all_model(data_line_matchups)
 }
 
 prep_all_model = function(data) {
   model_name = 'all'
-  data = data %>%
-    mutate(net_xg = winner_xg + loser_xg) %>%
-    mutate(faceoff_type = case_when(
-      event_zone != 'Neu' &  ((last_faceoff_winner == home_team & home_zone == 'Off') | (last_faceoff_winner != home_team & home_zone == 'Def')) ~ 'Off zone won by Off team',
-      event_zone != 'Neu' &  ((last_faceoff_winner != home_team & home_zone == 'Off') | (last_faceoff_winner == home_team & home_zone == 'Def')) ~ 'Def zone won by Def team',
-      event_zone != 'Neu' &  ((last_faceoff_winner == home_team & home_zone == 'Def') | (last_faceoff_winner != home_team & home_zone == 'Off')) ~ 'Def zone won by Def team',
-      event_zone != 'Neu' &  ((last_faceoff_winner != home_team & home_zone == 'Def') | (last_faceoff_winner == home_team & home_zone == 'Off')) ~ 'Off zone won by Off team',
-      TRUE ~ 'other'
-    ))
   
   data_off_off = data %>%
+    ungroup() %>%
     filter(faceoff_type == 'Off zone won by Off team') %>%
     select(-faceoff_type)
   
   data_def_def = data %>%
+    ungroup() %>%
     filter(faceoff_type == 'Def zone won by Def team') %>%
     select(-faceoff_type)
   
@@ -217,8 +212,8 @@ prep_all_model = function(data) {
   data_off_off = data_off_off %>% select_if(~ !any(is.na(.)))
   data_def_def = data_def_def %>% select_if(~ !any(is.na(.)))
   
-  data_off_off %>% select(-event_zone, -last_faceoff_winner, -event_team, -home_team, -away_team, -home_zone, -season, -game_id, -winner_xg, -contains("FOW"), -contains("FOL")) %>% write_csv(paste0('training_data_', model_name, '_offensive_offensive.csv'))
-  data_def_def %>% select(-event_zone, -last_faceoff_winner, -event_team, -home_team, -away_team, -home_zone, -season, -game_id, -winner_xg, -contains("FOW"), -contains("FOL")) %>% write_csv(paste0('training_data_', model_name, '_defensive_defensive.csv'))
+  data_off_off %>% select(-winner_xg, -loser_xg, -contains("FOW"), -contains("FOL")) %>% select(-ends_with("_All")) %>% write_csv(paste0('training_data_', model_name, '_offensive_offensive.csv'))
+  data_def_def %>% select(-winner_xg, -loser_xg, -contains("FOW"), -contains("FOL")) %>% select(-ends_with("_All")) %>% write_csv(paste0('training_data_', model_name, '_defensive_defensive.csv'))
 }
 
 check_leivo = function(temp) {
