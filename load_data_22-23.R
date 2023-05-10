@@ -5,6 +5,11 @@ library(lubridate)
 source("link.R")
 source("zone_entry.R")
 
+#notes
+#changed titles in 20739 (NY -> NYI), 20667, 20657, 20656, 20624 (should be TB), 20523, 20416 (space between . and ARI), 20401, 20305, 20288, 20005
+
+#two 20086 games, one has BU instead of BUF, but it also has different sheets?
+
 start_year = 2022
 end_year = 2023
 
@@ -373,25 +378,7 @@ filter_games = function(pbp_with_sznajder) {
     distinct(game_date, home_team, away_team, .keep_all = TRUE)
   
   print(nrow(pbp_with_sznajder))
-  
-  # Experiment to address issue of Sznajder tracking games post gameday. Not yet working.
-  # pbp_with_sznajder_remaining= pbp_with_sznajder %>%
-  #   anti_join(sznajder_games, by = c('game_date', 'home_team', 'away_team')) %>%
-  #   anti_join(sznajder_games, by = c('game_date', 'home_team' = 'away_team', 'away_team' = 'home_team'), suffix = c('', '_reversed'))
-  # 
-  # for (i in 1:5) {
-  #   pbp_with_sznajder_remaining = pbp_with_sznajder_remaining %>%
-  #     mutate(game_date = as.Date(game_date) - i) %>% # subtract i days from sznajder game_date
-  #     mutate(game_date = substr(game_date, 1, 8)) # cast date back to character so types agree in joins
-  #   current_join = pbp_with_sznajder_remaining %>%
-  #     inner_join(sznajder_games, by = c('game_date', 'home_team', 'away_team')) %>%
-  #     inner_join(sznajder_games, by = c('game_date', 'home_team' = 'away_team', 'away_team' = 'home_team'), suffix = c('', '_reversed')) %>%
-  #     filter(count > 0 | count_reversed > 0) 
-  #   pbp_with_zone_changes = rbind(pbp_with_zone_changes, current_join)
-  #   pbp_with_sznajder_remaining = pbp_with_sznajder_remaining %>%
-  #     anti_join(sznajder_games, by = c('game_date', 'home_team', 'away_team')) %>%
-  #     anti_join(sznajder_games, by = c('game_date', 'home_team' = 'away_team', 'away_team' = 'home_team'), suffix = c('', '_reversed'))
-  # }
+
   
   pbp_with_zone_changes = pbp_with_sznajder %>%
     left_join(sznajder_games, by = c('game_date', 'home_team', 'away_team')) %>%
@@ -404,11 +391,8 @@ filter_games = function(pbp_with_sznajder) {
   pbp_with_zone_changes = pbp_with_zone_changes %>%
     filter(game_id %in% pbp_game_ids) %>%
     arrange(game_id, game_seconds)
-  # pbp_with_zone_changes = pbp_with_zone_changes %>%
-  #   left_join(pbp_games, by = c('game_date', 'home_team', 'away_team')) %>%
-  #   left_join(pbp_games, by = c('game_date', 'home_team' = 'away_team', 'away_team' = 'home_team'), suffix = c('_pbp', '_pbp_reversed')) %>%
-  #   filter(count_pbp > 0 | count_pbp_reversed > 0) %>% # eliminate records from games w/ 0 (or NA) count of zone changes in Sznajder data
-  #   arrange(game_date, home_team, away_team, game_seconds)
+ 
+  
   print(colnames(pbp_with_zone_changes))
   print(nrow(pbp_with_zone_changes))
 }
