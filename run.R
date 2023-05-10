@@ -221,3 +221,9 @@ check_leivo = function(temp) {
     filter(Win_F1_Name == 'JOSH.LEIVO')
   print(nrow(temp))
 }
+
+projections = function() {
+  source("load_data_22-23.R")
+  load_season()
+  
+}
