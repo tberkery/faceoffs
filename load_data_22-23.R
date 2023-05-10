@@ -9,7 +9,7 @@ source("zone_entry.R")
 #changed titles in 20739 (NY -> NYI), 20667, 20657, 20656, 20624 (should be TB), 20523, 20416 (space between . and ARI), 20401, 20305, 20288, 20005
 
 #two 20086 games, one has BU instead of BUF, but it also has different sheets?
-
+#two 20349. VGK/CBJ renamed to 20348
 start_year = 2022
 end_year = 2023
 
