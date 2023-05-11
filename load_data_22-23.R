@@ -9,7 +9,7 @@ source("zone_entry.R")
 #changed titles in 20739 (NY -> NYI), 20667, 20657, 20656, 20624 (should be TB), 20523, 20416 (space between . and ARI), 20401, 20305, 20288, 20005
 
 #two 20086 games, one has BU instead of BUF, but it also has different sheets?
-#two 20349. VGK/CBJ renamed to 20348
+
 start_year = 2022
 end_year = 2023
 
@@ -350,6 +350,12 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
   
   zone_entries = create_zone_entries(pbp_with_sznajder, games_zone_entries)
   zone_exits = create_zone_exits(pbp_with_sznajder, games_zone_exits)
+  
+  zone_entries$season = 20222023;
+  zone_exits$season = 20222023;
+  
+  zone_entries = zone_entries[!is.na(zone_entries$event_player_1),]
+  
   zone_entries %>% write_csv("zone_entries_intermediate.csv")
   zone_exits %>% write_csv("zone_exits_intermediate.csv")
   return(pbp_with_sznajder)
