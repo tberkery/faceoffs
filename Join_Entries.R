@@ -53,17 +53,22 @@ join_entries = function(start_year, end_year, zone_entries, zone_exits) {
     )
   
   #Enter ZEH PBP Data Here
+  year = start_year
+  print(year)
   pbp = read_csv(paste0('EH_pbp_query_', year, year + 1, '.csv')) %>%
     #rbind(read_csv(paste0('EH_pbp_query_', year + 1, year + 2, '.csv'))) %>%
     mutate(pbp = 1,
            teams = paste(pmin(home_team,away_team), pmax(home_team,away_team), sep = ','),
            game_date = anydate(game_date))
-  for (iterative_year in (start_year+1):end_year) {
-    pbp_iter = read_csv(paste0('EH_pbp_query_', iterative_year, iterative_year + 1, '.csv')) %>%
-      mutate(pbp = 1,
-             teams = paste(pmin(home_team,away_team), pmax(home_team,away_team), sep = ','),
-             game_date = anydate(game_date))
-    pbp = rbind(pbp, pbp_iter)
+  if (start_year + 1 <= end_year) {
+    for (iterative_year in (start_year+1):end_year) {
+      print(iterative_year)
+      pbp_iter = read_csv(paste0('EH_pbp_query_', iterative_year, iterative_year + 1, '.csv')) %>%
+        mutate(pbp = 1,
+               teams = paste(pmin(home_team,away_team), pmax(home_team,away_team), sep = ','),
+               game_date = anydate(game_date))
+      pbp = rbind(pbp, pbp_iter)
+    }
   }
   
   entries_games = zone_entries_sample %>%
