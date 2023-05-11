@@ -238,6 +238,25 @@ condition_updated = function(big_join, dataset_imputed) {
     mutate(winner_xg = sum(winner_attributable_xg, na.rm = TRUE),
            loser_xg = sum(loser_attributable_xg, na.rm = TRUE)) %>%
     ungroup()
+  
+  xg_info_id = xg_info_id %>%
+    mutate(end_possession_attributable = ifelse(((event_type == 'SHOT' | event_type == 'MISS' | event_type == 'GOAL') & event_team != last_faceoff_winner) | event_type == "FAC", game_seconds, NA)) %>%
+    #mutate(end_possession_attributable = ifelse(event_type == 'FAC', NA, end_possession_attributable)) %>%
+    #mutate(end_possession_attributable = ifelse(lag(end_possession_attributable) < end_possession_attributable, NA, end_possession_attributable)) %>%
+    #mutate(end_possession_attributable = ifelse(event_type == 'FAC', game_seconds, end_possession_attributable)) %>%
+    mutate(end_possession_attributable = na.locf(end_possession_attributable, fromLast = T, na.rm = F)) %>%
+    mutate(end_possession_attributable = lead(end_possession_attributable)) %>%
+    mutate(end_possession_attributable = ifelse(event_type != 'FAC', NA, end_possession_attributable)) %>%
+    mutate(end_possession_attributable = na.locf(end_possession_attributable, na.rm = F))
+  
+  xg_info_id = xg_info_id %>%
+    mutate(possession_time_change = ifelse(((event_team == last_faceoff_winner & event_zone.x == 'Off') | (event_team != last_faceoff_winner & event_zone.x == 'Def')) & game_seconds < end_possession_attributable, game_seconds - lag(game_seconds), 0))
+  
+  xg_info_id = xg_info_id %>%
+    group_by(ID) %>%
+    mutate(attributable_possession = sum(possession_time_change, na.rm = TRUE)) %>%
+    ungroup()
+  
   temp = xg_info_id %>%
     ungroup() %>%
     select(season, game_id, ID, game_date, game_period, game_seconds, event_type, event_team, last_faceoff_winner, winner_xg, loser_xg, pred_goal, event_player_1, event_player_2, event_description)
@@ -246,6 +265,7 @@ condition_updated = function(big_join, dataset_imputed) {
     filter(event_type == 'FAC') %>%
     mutate(winner_xg = lead(winner_xg),
            loser_xg = lead(loser_xg))
+  
   temp2 = faceoffs_full_new %>% 
     select(game_id, ID, game_seconds, event_type, event_team, event_zone.x, last_faceoff_winner, event_description, winner_xg, loser_xg)
   
@@ -255,6 +275,7 @@ condition_updated = function(big_join, dataset_imputed) {
     left_join(faceoffs_objective_summary, by = c('game_id', 'season', 'game_seconds', 'event_type')) %>%
     filter(event_zone != 'Neu') %>%
     drop_na()
+
   temp = data_with_objective %>%
     select(season, game_id, game_date, game_period, game_seconds, event_type, event_team, winner_xg, loser_xg, event_player_1, event_player_2)
   return(data_with_objective)
