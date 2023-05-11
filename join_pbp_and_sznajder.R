@@ -250,7 +250,8 @@ condition_updated = function(big_join, dataset_imputed) {
     mutate(end_possession_attributable = na.locf(end_possession_attributable, na.rm = F))
   
   xg_info_id = xg_info_id %>%
-    mutate(possession_time_change = ifelse(((event_team == last_faceoff_winner & event_zone.x == 'Off') | (event_team != last_faceoff_winner & event_zone.x == 'Def')) & game_seconds < end_possession_attributable, game_seconds - lag(game_seconds), 0))
+    mutate(possession_time_change = ifelse(((event_team == last_faceoff_winner & event_zone.x == 'Off') | (event_team != last_faceoff_winner & event_zone.x == 'Def')) & game_seconds < end_possession_attributable, game_seconds - lag(game_seconds), 0)) %>%
+    mutate(ifelse(possession_time_change < 0, 0, possession_time_change))
   
   xg_info_id = xg_info_id %>%
     group_by(ID) %>%
@@ -259,7 +260,7 @@ condition_updated = function(big_join, dataset_imputed) {
   
   temp = xg_info_id %>%
     ungroup() %>%
-    select(season, game_id, ID, game_date, game_period, game_seconds, event_type, event_team, last_faceoff_winner, winner_xg, loser_xg, pred_goal, event_player_1, event_player_2, event_description)
+    select(season, game_id, ID, game_date, game_period, game_seconds, event_type, event_team, last_faceoff_winner, winner_xg, loser_xg, pred_goal, attributable_possession, end_possession_attributable, event_player_1, event_player_2, event_description)
   faceoffs_full_new = xg_info_id %>%
     left_join(faceoffs_with_player_roles, by = c('game_id' = 'game_id', 'season' = 'season', 'game_seconds', 'event_type')) %>%
     filter(event_type == 'FAC') %>%
@@ -270,7 +271,7 @@ condition_updated = function(big_join, dataset_imputed) {
     select(game_id, ID, game_seconds, event_type, event_team, event_zone.x, last_faceoff_winner, event_description, winner_xg, loser_xg)
   
   faceoffs_objective_summary = faceoffs_full_new %>%
-    select(game_id, season, game_seconds, event_type, winner_xg, loser_xg)
+    select(game_id, season, game_seconds, event_type, winner_xg, loser_xg, attributable_possession)
   data_with_objective = dataset_imputed_with_game_date %>%
     left_join(faceoffs_objective_summary, by = c('game_id', 'season', 'game_seconds', 'event_type')) %>%
     filter(event_zone != 'Neu') %>%

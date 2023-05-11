@@ -196,12 +196,12 @@ prep_all_model = function(data) {
   print(colnames(data_off_off))
   print(colnames(data_def_def))
   
-  cols = colnames(data_off_off %>% select(where(is.numeric)) %>% select(-net_xg))
+  cols = colnames(data_off_off %>% select(where(is.numeric)) %>% select(-net_xg, -attributable_possession))
   data_off_off <- data_off_off %>%
     mutate(across(all_of(cols), ~scale(.))) %>%
     mutate(across(all_of(cols), ~as.numeric(.)))
   
-  cols = colnames(data_def_def %>% select(where(is.numeric)) %>% select(-net_xg))
+  cols = colnames(data_def_def %>% select(where(is.numeric)) %>% select(-net_xg, -attributable_possession))
   data_def_def <- data_def_def %>%
     mutate(across(all_of(cols), ~scale(.))) %>%
     mutate(across(all_of(cols), ~as.numeric(.)))

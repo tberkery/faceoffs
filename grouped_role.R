@@ -8,7 +8,7 @@ group_roles = function(dataset) {
   general_cols = general_cols[-1] # drop API ID
   col = general_cols[[1]]
   dataset_updated = data
-  dataset_output = data %>% select(1:38, ends_with('xg'))
+  dataset_output = data %>% select(1:38, ends_with('xg'), contains('possession'))
   for (col in general_cols) {
     win_f1_col = paste0(col, "_Win_F1")
     win_f2_col = paste0(col, "_Win_F2")
