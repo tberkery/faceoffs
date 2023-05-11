@@ -32,7 +32,7 @@ entries_22 <- entries %>%
 exits_22 <- exits %>%
   select(Player = Player, Exits = `Zone Exits `, 
          `Possession.Exits` = `Exit w/ Possession%`, `Exit%` = `Successful Exit%`, 
-         Fail = `Failed Exit%`, Clear = `Sum of Clears`)
+         `Fail%` = `Failed Exit%`, Clear = `Sum of Clears`)
 
 shots_22 <- shots %>%
   select(Player = Player, `Low-to-High` = `Low-to-High Passes`, 
@@ -48,4 +48,12 @@ shots_22 <- shots_22 %>% mutate(High.Danger = High.Danger + Behind.net)
 
 # Merge the dataframes by Player
 microstats_22 <- reduce(list(entries_22, exits_22, shots_22), full_join, by = "Player")
+microstats_old = read_csv("microstats.csv")
+microstats_22 = microstats_22 %>%
+  rename(`Pass%` = `Pass% /`,
+         Behind.Net = Behind.net,
+         Deflection = Deflections
+         ) %>%
+  mutate(year = 2022) %>%
+  select(all_of(colnames(microstats_old)))
 write.csv(microstats_22, file = "microstats_22.csv", row.names = FALSE)
