@@ -1,3 +1,9 @@
+library(tidyverse)
+library(anytime)
+library(stringr)
+library(fuzzyjoin)
+library(lubridate)
+
 load_sznajder_2022 = function() {
   
   source("load_data_22-23.R")

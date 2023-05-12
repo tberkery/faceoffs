@@ -2,8 +2,10 @@ library(tidyverse)
 library(stringr)
 library(fuzzyjoin)
 library(lubridate)
+library(hash)
 source("link.R")
 source("zone_entry.R")
+library(sets)
 
 #notes
 #changed titles in 20739 (NY -> NYI), 20667, 20657, 20656, 20624 (should be TB), 20523, 20416 (space between . and ARI), 20401, 20305, 20288, 20005
@@ -34,6 +36,28 @@ load_eh_pbp = function(start_year, end_year) {
   pbp_initial = pbp
   print(pbp)
   return(pbp)
+}
+
+get_date_teams_dict = function(pbp) {
+  #dictionary of date -> set(home,away; home,away)
+  date_home_away <- hash()
+  pbp_unique_games = pbp[pbp$event_index == 1,]
+  
+  for (i in 1:nrow(pbp_unique_games)) {
+    print(i)
+    game_date = pbp_unique_games[i,]$game_date;
+    char_game_date = as.character(game_date)
+    home_away_str = paste0(pbp_unique_games[i,]$home_team," ",pbp_unique_games[i,]$away_team)
+    if (!has.key(char_game_date, date_home_away)) {
+      new_set <- set()
+      date_home_away[[char_game_date]] = new_set
+    }
+    
+    cur_set = date_home_away[[char_game_date]]
+    cur_set = union(cur_set, home_away_str)
+    date_home_away[[char_game_date]] = cur_set
+  }
+  return (date_home_away)
 }
 
 load_sznajder_game_reports = function(start_year, end_year, pbp) {
@@ -130,6 +154,8 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
       }
       game_file_zone_entries <- game_file[, colnames(game_file)[c(1:3, 21:27)]]
       game_file_zone_exits <- game_file[, colnames(game_file)[c(1:3, 28:31)]]
+      
+      
       
       if (is_null(game_file_zone_entries) | is_null(game_file_zone_exits)) { # skip over games with empty zone entry file or empy zone exit file (e.g. one Dallas/Colorado game)
         next
@@ -273,6 +299,38 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
       # those should fully adjust the exits to match 2017
       
       file_creation_date = file.info(file_with_path)$ctime # Read when file was first created. Will use as game date.
+      
+      #assigns in case can't get from sheet
+      date_obj = file_creation_date;
+      
+      #Getting game date from sheet
+      mtry = try(openxlsx::read.xlsx(file_with_path, 'Player List'), silent = TRUE)
+      if (class(mtry) != "try-error") {
+        game_file_player_list = openxlsx::read.xlsx(file_with_path, 'Player List')
+        date_string = word(game_file_player_list$Game[1], 1)
+        date_obj = as.Date(date_string, format = "%m/%d/%Y")
+      } else {
+        message("Player List doesn't exist, please check")
+        print(file_with_path)
+      }
+      print(date_obj);
+      
+      date_home_away = get_date_teams_dict(pbp);
+      
+      teams_set = date_home_away[[as.character(date_obj)]]
+      for (teams in teams_set) {
+        pbp_home = word(teams, 1);
+        pbp_away = word(teams, 2);
+        
+        #if the date and teams match, but the home and away are flipped
+        if ((pbp_home == away_team) & (pbp_away == home_team)) {
+          home_team = pbp_home
+          away_team = pbp_away
+        }
+      }
+      
+      
+      
       team_home = home_team
       team_away = away_team
       print(team_home)
@@ -291,7 +349,7 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
                away_team_temp = away_team) %>%
         mutate(home_team = ifelse(home_team_temp == Opp, away_team_temp, home_team_temp),
                away_team = ifelse(away_team_temp == Opp, away_team_temp, home_team_temp),
-               effective_game_date = file_creation_date) %>%
+               effective_game_date = date_obj) %>%
         select(-c(home_team_temp, away_team_temp)) %>%
         mutate(abbreviation_home = home_team,
                abbreviation_away = away_team)
@@ -301,10 +359,10 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
         select(season_game_index, home_team, away_team) %>%
         distinct(season_game_index, .keep_all = TRUE)
       
-      
+      #changed effective_game_date assignment here
       game_file_zone_exits = game_file_zone_exits %>%
         mutate(season_game_index = season_game_index,
-               effective_game_date = file_creation_date) %>%
+               effective_game_date = date_obj) %>%
         mutate(home_team = home_team, away_team = away_team)
       
       
