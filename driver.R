@@ -84,7 +84,7 @@ connect_skaters_and_goaltending_to_team_performance = function() {
   skaters_with_goaltending_and_teams = skaters_with_goaltending %>%
     inner_join(eh_team_summary, by = c('Team', 'Season'), suffix = c('', '_team'))
   skaters_with_goaltending_and_teams = skaters_with_goaltending_and_teams %>%
-    select(-c(Birthday, `FO±`))
+    select(-contains("Birthday"), -contains("FOA±"))
   skaters_with_goaltending_and_teams = skaters_with_goaltending_and_teams %>%
     rename_cols()
   skaters_with_goaltending_and_teams = skaters_with_goaltending_and_teams %>%
