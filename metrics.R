@@ -1,7 +1,19 @@
 library(tidyverse)
 
-seed_metrics = function(data) {
+seed_metrics = function() {
   
+}
+
+compute_time_until_zone_change = function(faceoffs, big_join) {
+  # For faceoff winner
+  faceoffs_and_zone_changes = big_join %>%
+    filter(event_type == "FAC" | event_type == "ZONE_ENTRY" | event_type == "ZONE_EXIT" | event_type == "GOAL") %>%
+    filter(!(event_type == "FAC" & event_zone == "Neu")) %>%
+    filter(!grepl("OZF", event_description))
+  
+  # For faceoff loser
+  
+  # Difference
 }
 
 # OFFENSIVE WIN, OFFENSIVE LOSS,
