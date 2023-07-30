@@ -1,6 +1,46 @@
 library(tidyverse)
+library(stringr)
 
 seed_metrics = function() {
+  
+}
+
+# Function to extract three characters following the first occurrence of a number
+extract_three_chars <- function(text) {
+  result <- str_extract(text, "(?<=\\d{1,2})\\w{4}")
+  if (is.na(result)) {
+    return(NA)
+  } else {
+    result = remove_non_capital_letters(result)
+    return(result)
+  }
+}
+
+remove_non_capital_letters <- function(text) {
+  # Use gsub to remove spaces and numbers
+  cleaned_text <- gsub("[^A-Z]", "", text)
+  return(cleaned_text)
+}
+
+extract_team_from_zone_change_record = function(df) {
+  df$zone_change_team <- sapply(df$event_description, extract_three_chars)
+  return(df)
+}
+
+identify_last_faceoff_winner = function(df) {
+  fo_df = df %>%
+    mutate(last_faceoff_winner = NA) %>%
+    mutate(last_faceoff_winner = ifelse(
+      event_type == "FAC", event_team, NA
+    )) %>%
+    fill(last_faceoff_winner, .direction = "down") %>%
+    mutate(last_faceoff_winner_home = ifelse(last_faceoff_winner == home_team, TRUE, FALSE)) %>%
+    mutate(last_faceoff_winner_zone = ifelse(event_type == "FAC", str_sub(event_description, 9, 11), NA)) %>%
+    fill(last_faceoff_winner_zone, .direction = "down")
+  return(fo_df)
+}
+
+identify_zone_change_team_relative_to_faceoff = function(df) {
   
 }
 
@@ -10,7 +50,8 @@ compute_time_until_zone_change = function(faceoffs, big_join) {
     filter(event_type == "FAC" | event_type == "ZONE_ENTRY" | event_type == "ZONE_EXIT" | event_type == "GOAL") %>%
     filter(!(event_type == "FAC" & event_zone == "Neu")) %>%
     filter(!grepl("OZF", event_description))
-  
+  faceoffs_and_zone_changes_updated = extract_team_from_zone_change_record(faceoffs_and_zone_changes)
+  faceoffs_and_zone_changes_updated = identify_last_faceoff_winner(faceoffs_and_zone_changes_updated)
   # For faceoff loser
   
   # Difference
