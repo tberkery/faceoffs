@@ -1,14 +1,21 @@
 library(tidyverse)
 library(stringr)
 
+# Centralized function for calling all functions relating to generating metrics/objective labels
 seed_metrics = function() {
   big_join_objective = big_join %>% 
+    remove_faceoff_zone_entries() %>%
     identify_last_faceoff_winner() %>%
     populate_event_team_for_zone_changes() %>%
     extend_over_zone_changes() %>%
     identify_event_team_relative_to_faceoff() %>%
-    identify_zone_change_team_relative_to_faceoff()
-  
+    identify_zone_change_team_relative_to_faceoff() %>%
+    identify_event_team_positioning_at_last_faceoff()
+  temp = big_join_objective %>%
+    compute_FA_zone_time() %>%
+    head(500)
+    
+  return(big_join_objective)
 }
 
 # Function to extract three characters following the first occurrence of a number
@@ -22,12 +29,14 @@ extract_three_chars <- function(text) {
   }
 }
 
+# Function for stripping characters that cannot be part of valid team abbreviation
 remove_non_capital_letters <- function(text) {
   # Use gsub to remove spaces and numbers
   cleaned_text <- gsub("[^A-Z]", "", text)
   return(cleaned_text)
 }
 
+# Fill NAs for rows based on most recent EARLIER non-NA value.
 extend_over_zone_changes = function(df) {
   cols = c("season", "game_id", "game_date", "game_period", "num_on", "num_off",
            "players_on", "players_off", "home_on_1", "home_on_2", "home_on_3",
@@ -42,11 +51,21 @@ extend_over_zone_changes = function(df) {
   }
   return(df)
 }
+
+remove_faceoff_zone_entries = function(df) {
+  df = df %>%
+    filter(!(event_type == "ZONE_ENTRY" & lag(event_type, 1) == "FAC" & lag(game_seconds, 1) == game_seconds))
+  return(df)
+}
+
+# Populate event_team for custom created ZONE_ENTRY and ZONE_EXIT listings
+# from Corey Sznajder data
 extract_team_from_zone_change_record = function(df) {
   df$zone_change_team <- sapply(df$event_description, extract_three_chars)
   return(df)
 }
 
+# Note for every record who won the last faceoff.
 identify_last_faceoff_winner = function(df) {
   fo_df = df %>%
     mutate(last_faceoff_winner = NA) %>%
@@ -59,12 +78,17 @@ identify_last_faceoff_winner = function(df) {
     fill(last_faceoff_winner_zone, .direction = "down")
   return(fo_df)
 }
+
+# Identify event perpetrator in terms of WINNER or LOSER of last faceoff.
 identify_event_team_relative_to_faceoff = function(df) {
   fo_df = df %>%
     mutate(event_team_relative_to_faceoff = ifelse(last_faceoff_winner == event_team, "WINNER", "LOSER"))
   return(fo_df)
 }
 
+
+# Alternate way to populate event_team for custom created ZONE_ENTRY and ZONE_EXIT listings
+# from Corey Sznajder data
 populate_event_team_for_zone_changes = function(df) {
   fo_df = df
   fo_df$zone_change_event_team = sapply(df$event_description, extract_three_chars)
@@ -78,6 +102,7 @@ populate_event_team_for_zone_changes = function(df) {
   return(fo_df)
 }
 
+# Identify team perpetrating zone change as either last faceoff winner of last faceoff loser.
 identify_zone_change_team_relative_to_faceoff = function(df) {
   # Assumes you have already called populate_event_team_for_zone_change, meaning you should always
   # have an event_team.
@@ -94,19 +119,74 @@ identify_zone_change_team_relative_to_faceoff = function(df) {
   
 }
 
-compute_time_until_zone_change = function(faceoffs, big_join) {
-  # For faceoff winner
-  faceoffs_and_zone_changes = big_join %>%
-    filter(event_type == "FAC" | event_type == "ZONE_ENTRY" | event_type == "ZONE_EXIT" | event_type == "GOAL") %>%
-    filter(!(event_type == "FAC" & event_zone == "Neu")) %>%
-    filter(!grepl("OZF", event_description))
-  faceoffs_and_zone_changes_updated = extract_team_from_zone_change_record(faceoffs_and_zone_changes)
-  faceoffs_and_zone_changes_updated = identify_last_faceoff_winner(faceoffs_and_zone_changes_updated)
-  # For faceoff loser
+identify_event_team_positioning_at_last_faceoff = function(df) {
+  fo_df = df %>%
+    mutate(last_faceoff_winner_faceoff_zone = ifelse(event_type == "FAC", event_zone, NA)) %>%
+    fill(last_faceoff_winner_faceoff_zone, .direction = "down") %>%
+    mutate(event_team_positioning_last_faceoff = 
+             ifelse(event_team == last_faceoff_winner, 
+                    case_when(
+                      last_faceoff_winner_faceoff_zone == "Off" ~ "OFFENSIVE",
+                      last_faceoff_winner_faceoff_zone == "Def" ~ "DEFENSIVE",
+                      last_faceoff_winner_faceoff_zone == "Neu" ~ "NEUTRAL"
+                    ), 
+                    case_when(
+                      last_faceoff_winner_faceoff_zone == "Off" ~ "DEFENSIVE",
+                      last_faceoff_winner_faceoff_zone == "Def" ~ "OFFENSIVE",
+                      last_faceoff_winner_faceoff_zone == "Neu" ~ "NEUTRAL"
+                    )
+                  )
+          ) %>%
+    mutate(last_faceoff_loser_faceoff_zone = ifelse(event_type == "FAC", case_when(
+      event_zone == "Off" ~ "Def",
+      event_zone == "Def" ~ "Off",
+      event_zone == "Neu" ~ "Neu"
+    ), NA)) %>%
+    fill(last_faceoff_loser_faceoff_zone, .direction = "down")
   
-  # Difference
+  return(fo_df)
 }
 
+compute_FA_zone_time = function(df) {
+  
+  # We have a zone change if any of the following occur (not mutually exclusive)
+  # - An event occurring after an offensive/defensive faceoff is detected in the neutral zone
+  # - An event occurs in the losing team's offensive zone/the winning team's defensive zone
+  # - A zone exit perpetrated by the losing team is observed.
+  # - Also halt counting if there is a play stoppage
+  
+  df = df %>%
+    mutate(start_FA = ifelse(event_type == "FAC" & event_zone != "Neu", game_seconds, NA)) %>%
+    fill(start_FA, .direction = "down") %>%
+    mutate(next_stoppage = ifelse(
+      event_type %in% c("FAC", "STOP", "GOAL", "PGSTR", "PGEND", "PENL", "PEND", "GEND"), game_seconds, NA)) %>%
+    fill(next_stoppage, .direction = "up") %>%
+    mutate(next_neutral_zone_event = ifelse(event_zone == "Neu", game_seconds, NA)) %>%
+    fill(next_neutral_zone_event, .direction = "up") %>%
+    mutate(next_zone_exit = ifelse(event_type == "ZONE_EXIT" | (event_type == "ZONE_ENTRY" & !(game_seconds == lag(game_seconds) & lag(event_type) == "FAC")), game_seconds, NA)) %>%
+    fill(next_zone_exit, .direction = "up") %>%
+    mutate(next_escaped_event = ifelse(!is.na(event_zone) & !is.na(event_team) &
+                                         (
+                                           (event_team != last_faceoff_winner & event_zone == last_faceoff_loser_faceoff_zone) |
+                                           (event_team == last_faceoff_winner & event_zone == last_faceoff_winner_zone)
+                                         ), 
+                                      NA, game_seconds)) %>%
+    fill(next_escaped_event, .direction = "up")
+    
+  df = df %>%
+    mutate(is_FA = ifelse(game_seconds >= start_FA &
+                            game_seconds <= next_stoppage &
+                            game_seconds <= next_neutral_zone_event &
+                            game_seconds <= next_zone_exit &
+                            game_seconds <= next_escaped_event, TRUE, FALSE)) %>%
+    fill(is_FA, .direction = "down") %>%
+    mutate(end_FA = min(c_across(c(next_stoppage, next_neutral_zone_event, next_zone_exit, next_escaped_event)))) %>%
+    fill(end_FA, .direction = "down") %>%
+    mutate(FA_zone_time = end_FA - start_FA)
+  return(df)
+}
+
+# This function is a convenience utility for checking for odd results.
 audit = function(df) {
   df_audit = df %>%
     select(game_id, game_date, game_seconds, clock_time, event_type, 
