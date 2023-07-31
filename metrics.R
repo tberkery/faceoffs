@@ -2,6 +2,12 @@ library(tidyverse)
 library(stringr)
 
 seed_metrics = function() {
+  big_join_objective = big_join %>% 
+    identify_last_faceoff_winner() %>%
+    populate_event_team_for_zone_changes() %>%
+    extend_over_zone_changes() %>%
+    identify_event_team_relative_to_faceoff() %>%
+    identify_zone_change_team_relative_to_faceoff()
   
 }
 
@@ -22,6 +28,20 @@ remove_non_capital_letters <- function(text) {
   return(cleaned_text)
 }
 
+extend_over_zone_changes = function(df) {
+  cols = c("season", "game_id", "game_date", "game_period", "num_on", "num_off",
+           "players_on", "players_off", "home_on_1", "home_on_2", "home_on_3",
+           "home_on_4", "home_on_5", "home_on_6", "away_on_1", "away_on_2",
+           "away_on_3", "away_on_4", "away_on_5", "away_on_6", "home_goalie",
+           "away_goalie", "home_team", "away_team", "home_skaters", "away_skaters",
+           "home_score", "away_score", "game_score_state", "game_strength_state",
+           "teams", "home_zonestart", "face_index", "pen_index", "shift_index")
+  for (col in cols) {
+    df = df %>%
+      fill(!!sym(col), .direction = "down")
+  }
+  return(df)
+}
 extract_team_from_zone_change_record = function(df) {
   df$zone_change_team <- sapply(df$event_description, extract_three_chars)
   return(df)
@@ -39,8 +59,38 @@ identify_last_faceoff_winner = function(df) {
     fill(last_faceoff_winner_zone, .direction = "down")
   return(fo_df)
 }
+identify_event_team_relative_to_faceoff = function(df) {
+  fo_df = df %>%
+    mutate(event_team_relative_to_faceoff = ifelse(last_faceoff_winner == event_team, "WINNER", "LOSER"))
+  return(fo_df)
+}
+
+populate_event_team_for_zone_changes = function(df) {
+  fo_df = df
+  fo_df$zone_change_event_team = sapply(df$event_description, extract_three_chars)
+  fo_df = fo_df %>%
+    mutate(event_team = case_when(
+      event_type == "ZONE_ENTRY" | event_type == "ZONE_EXIT" ~ zone_change_event_team,
+      TRUE ~ event_team
+    )) %>%
+    ungroup() %>%
+    select(-zone_change_event_team)
+  return(fo_df)
+}
 
 identify_zone_change_team_relative_to_faceoff = function(df) {
+  # Assumes you have already called populate_event_team_for_zone_change, meaning you should always
+  # have an event_team.
+  fo_df = df
+  fo_df = fo_df %>%
+    mutate(event_zone_relative_to_faceoff_winner = case_when(
+      event_team == last_faceoff_winner ~ event_zone,
+      event_team != last_faceoff_winner ~ case_when(
+        event_zone == "Off" ~ "Def",
+        event_zone == "Def" ~ "Off",
+        TRUE ~ event_zone # includes neutral zone case ("Neu")
+      )
+    ))
   
 }
 
@@ -57,11 +107,20 @@ compute_time_until_zone_change = function(faceoffs, big_join) {
   # Difference
 }
 
+audit = function(df) {
+  df_audit = df %>%
+    select(game_id, game_date, game_seconds, clock_time, event_type, 
+                  event_zone, event_team, last_faceoff_winner, last_faceoff_winner_zone,
+                  last_faceoff_winner_home, home_zone, event_team_relative_to_faceoff,
+                  event_zone_relative_to_faceoff_winner)
+  return(df_audit)
+}
+
 # OFFENSIVE WIN, OFFENSIVE LOSS,
 # DEFENSIVE WIN, DEFENSIVE LOSS
 # handle both teams at once in this function
 identify_situation = function(df) {
-  
+  return(NULL)
 }
 
 # Incremental FA zone time
@@ -77,8 +136,8 @@ get_next_faceoff_location = function(df) {
     mutate(next_faceoff_location = case_when(
       next_faceoff_location == "Neu" ~ next_faceoff_location,
       event_team == home_team & next_event_team == home_team ~ next_faceoff_location,
-      event_team == away_team & next_event_team == away_team ~ if(next_faceoff_location == "Off", "Def", "Off")
-      event_team == home_team & next_event_team == away_team ~ 
+      event_team == away_team & next_event_team == away_team ~ ifelse(next_faceoff_location == "Off", "Def", "Off"),
+      event_team == home_team & next_event_team == away_team 
     ))
     filter(game_id == lead(game_id, 1), game_date == lead(game_date, 1))
   df_updated = df %>%
@@ -90,7 +149,7 @@ get_next_faceoff_location = function(df) {
     ungroup() %>% 
     filter(event_type == "FAC") %>% 
     select(next_faceoff_location) %>% 
-    drop_na()
+    #drop_na()
   print(paste0("Before joining for next faceoff location, there are ", nrow(df_fac), " faceoffs."))
   print(paste0("After joining for next faceoff location, there are ", nrow(quick_look)))
   return(df_updated)
