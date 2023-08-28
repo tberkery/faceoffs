@@ -2,7 +2,7 @@ library(tidyverse)
 library(stringr)
 
 # Centralized function for calling all functions relating to generating metrics/objective labels
-seed_metrics = function() {
+seed_metrics = function(big_join) {
   big_join_objective = big_join %>% 
     remove_faceoff_zone_entries() %>%
     identify_last_faceoff_winner() %>%
@@ -150,39 +150,31 @@ identify_event_team_positioning_at_last_faceoff = function(df) {
 compute_FA_zone_time = function(df) {
   
   # We have a zone change if any of the following occur (not mutually exclusive)
-  # - An event occurring after an offensive/defensive faceoff is detected in the neutral zone
-  # - An event occurs in the losing team's offensive zone/the winning team's defensive zone
-  # - A zone exit perpetrated by the losing team is observed.
-  # - Also halt counting if there is a play stoppage
-  
+  # - If offensive zone win... time before next stoppage or detected ZONE_ENTRY or ZONE_EXIT
+  # - If not offensive zone win... by definition 0 FA zone time.
+
   df = df %>%
     mutate(start_FA = ifelse(event_type == "FAC" & event_zone != "Neu", game_seconds, NA)) %>%
     fill(start_FA, .direction = "down") %>%
     mutate(next_stoppage = ifelse(
-      event_type %in% c("FAC", "STOP", "GOAL", "PGSTR", "PGEND", "PENL", "PEND", "GEND"), game_seconds, NA)) %>%
+      event_type %in% c("STOP", "GOAL", "PGSTR", "PGEND", "PENL", "PEND", "GEND"), game_seconds, NA)) %>% # excluding FAC
     fill(next_stoppage, .direction = "up") %>%
     mutate(next_neutral_zone_event = ifelse(event_zone == "Neu", game_seconds, NA)) %>%
     fill(next_neutral_zone_event, .direction = "up") %>%
-    mutate(next_zone_exit = ifelse(event_type == "ZONE_EXIT" | (event_type == "ZONE_ENTRY" & !(game_seconds == lag(game_seconds) & lag(event_type) == "FAC")), game_seconds, NA)) %>%
+    mutate(next_zone_exit = ifelse(event_type == "ZONE_EXIT" | event_type == "ZONE_ENTRY", game_seconds, NA)) %>%
     fill(next_zone_exit, .direction = "up") %>%
-    mutate(next_escaped_event = ifelse(!is.na(event_zone) & !is.na(event_team) &
-                                         (
-                                           (event_team != last_faceoff_winner & event_zone == last_faceoff_loser_faceoff_zone) |
-                                           (event_team == last_faceoff_winner & event_zone == last_faceoff_winner_zone)
-                                         ), 
-                                      NA, game_seconds)) %>%
-    fill(next_escaped_event, .direction = "up")
-    
+    mutate(across(c(next_stoppage, next_neutral_zone_event, next_zone_exit), ~ifelse(event_type == "FAC", ., NA))) %>%
+    fill(next_stoppage, .direction = "down") %>%
+    fill(next_neutral_zone_event, .direction = "down") %>%
+    fill(next_zone_exit, .direction = "down")
   df = df %>%
     mutate(is_FA = ifelse(game_seconds >= start_FA &
-                            game_seconds <= next_stoppage &
-                            game_seconds <= next_neutral_zone_event &
-                            game_seconds <= next_zone_exit &
-                            game_seconds <= next_escaped_event, TRUE, FALSE)) %>%
-    fill(is_FA, .direction = "down") %>%
-    mutate(end_FA = min(c_across(c(next_stoppage, next_neutral_zone_event, next_zone_exit, next_escaped_event)))) %>%
+                            game_seconds < next_stoppage &
+                            game_seconds < next_neutral_zone_event &
+                            game_seconds < next_zone_exit, TRUE, FALSE)) %>%
+    mutate(end_FA = ifelse(is_FA, min(c_across(c(next_stoppage, next_neutral_zone_event, next_zone_exit))), NA)) %>%
     fill(end_FA, .direction = "down") %>%
-    mutate(FA_zone_time = end_FA - start_FA)
+    mutate(FA_zone_time = ifelse(is_FA, end_FA - start_FA, NA))
   return(df)
 }
 
@@ -253,3 +245,41 @@ get_meaningful_zone_time_status = function(df) {
 
 # Zone Time Rating (ZTR) + Situational Favorability Rating (SFR) + Favorable Faceoff Differential (FFD) + Goals per minute offensive zone time i.e. Offensive Rating (OFF) 
 # + Goals Allowed per Minute Defensive i.e. Defensive Rating (DEF)
+
+# compute_FA_zone_time = function(df) {
+#   
+#   # We have a zone change if any of the following occur (not mutually exclusive)
+#   # - An event occurring after an offensive/defensive faceoff is detected in the neutral zone
+#   # - A zone exit or zone entry occurs
+#   # - Also halt counting if there is a play stoppage
+#   
+#   df = df %>%
+#     mutate(start_FA = ifelse(event_type == "FAC" & event_zone != "Neu", game_seconds, NA)) %>%
+#     fill(start_FA, .direction = "down") %>%
+#     mutate(next_stoppage = ifelse(
+#       event_type %in% c("FAC", "STOP", "GOAL", "PGSTR", "PGEND", "PENL", "PEND", "GEND"), game_seconds, NA)) %>%
+#     fill(next_stoppage, .direction = "up") %>%
+#     mutate(next_neutral_zone_event = ifelse(event_zone == "Neu", game_seconds, NA)) %>%
+#     fill(next_neutral_zone_event, .direction = "up") %>%
+#     mutate(next_zone_exit = ifelse(event_type == "ZONE_EXIT" | (event_type == "ZONE_ENTRY" & !(game_seconds == lag(game_seconds) & lag(event_type) == "FAC")), game_seconds, NA)) %>%
+#     fill(next_zone_exit, .direction = "up") # %>%
+#   # mutate(next_escaped_event = ifelse(!is.na(event_zone) & !is.na(event_team) &
+#   #                                      (
+#   #                                        (event_team != last_faceoff_winner & event_zone == last_faceoff_loser_faceoff_zone) |
+#   #                                        (event_team == last_faceoff_winner & event_zone == last_faceoff_winner_zone)
+#   #                                      ), 
+#   #                                   NA, game_seconds)) %>%
+#   # fill(next_escaped_event, .direction = "up")
+#   
+#   df = df %>%
+#     mutate(is_FA = ifelse(game_seconds >= start_FA &
+#                             game_seconds <= next_stoppage &
+#                             game_seconds <= next_neutral_zone_event &
+#                             # game_seconds <= next_escaped_event &
+#                             game_seconds <= next_zone_exit, TRUE, FALSE)) %>%
+#     # fill(is_FA, .direction = "down") %>%
+#     mutate(end_FA = ifelse(is_FA, min(c_across(c(next_stoppage, next_neutral_zone_event, next_zone_exit))), NA)) %>%
+#     fill(end_FA, .direction = "down") %>%
+#     mutate(FA_zone_time = ifelse(is_FA, end_FA - start_FA, NA))
+#   return(df)
+# }
