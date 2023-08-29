@@ -11,11 +11,39 @@ seed_metrics = function(big_join) {
     identify_event_team_relative_to_faceoff() %>%
     identify_zone_change_team_relative_to_faceoff() %>%
     identify_event_team_positioning_at_last_faceoff()
-  temp = big_join_objective %>%
-    compute_FA_zone_time() %>%
-    head(500)
-    
-  return(big_join_objective)
+  FA_zone_time = big_join_objective %>%
+    compute_FA_zone_time()
+  
+  off_win_subset = FA_zone_time %>%
+    drop_na(is_FA, end_FA, start_FA) %>%
+    filter(event_type == "FAC", last_faceoff_winner_faceoff_zone == "Off") %>%
+    mutate(FA_zone_time = replace_na(FA_zone_time, 0))
+  source("parse_roles.R")
+  mega_dict = assemble_stats()
+  role_encoded = off_win_subset %>%
+    identify_roles(mega_dict)
+  prep_for_join = role_encoded %>%
+    rowwise() %>%
+    mutate(Win_Players = ifelse(
+        home_team == event_team,
+        str_c(sort(c(home_on_1, home_on_2, home_on_3, home_on_4, home_on_5, home_on_6)), collapse = ", "),
+        str_c(sort(c(away_on_1, away_on_2, away_on_3, away_on_4, away_on_5, away_on_6)), collapse = ", ")
+      ),
+      Lose_Players = ifelse(
+        home_team != event_team,
+        str_c(sort(c(home_on_1, home_on_2, home_on_3, home_on_4, home_on_5, home_on_6)), collapse = ", "),
+        str_c(sort(c(away_on_1, away_on_2, away_on_3, away_on_4, away_on_5, away_on_6)), collapse = ", ")
+      )) %>%
+    ungroup() %>%
+    select(-starts_with("home_on_"), -starts_with("away_on_"))
+  
+  line_stats = read_csv("training_data_all_offensive_offensive.csv") %>%
+    group_by(season, Win_Players, Lose_Players) %>%
+    mutate(across(where(is.numeric), ~max(., na.rm = TRUE))) %>%
+    distinct(season, Win_Players, Lose_Players, .keep_all = TRUE)
+  joined = prep_for_join %>%
+    inner_join(line_stats, by = c('season', 'Win_Players', 'Lose_Players'))
+  return(prep_for_join)
 }
 
 # Function to extract three characters following the first occurrence of a number
@@ -154,6 +182,7 @@ compute_FA_zone_time = function(df) {
   # - If not offensive zone win... by definition 0 FA zone time.
 
   df = df %>%
+    group_by(game_id, season) %>%
     mutate(start_FA = ifelse(event_type == "FAC" & event_zone != "Neu", game_seconds, NA)) %>%
     fill(start_FA, .direction = "down") %>%
     mutate(next_stoppage = ifelse(
@@ -161,7 +190,7 @@ compute_FA_zone_time = function(df) {
     fill(next_stoppage, .direction = "up") %>%
     mutate(next_neutral_zone_event = ifelse(event_zone == "Neu", game_seconds, NA)) %>%
     fill(next_neutral_zone_event, .direction = "up") %>%
-    mutate(next_zone_exit = ifelse(event_type == "ZONE_EXIT" | event_type == "ZONE_ENTRY", game_seconds, NA)) %>%
+    mutate(next_zone_exit = ifelse(event_type == "ZONE_EXIT", game_seconds, NA)) %>%
     fill(next_zone_exit, .direction = "up") %>%
     mutate(across(c(next_stoppage, next_neutral_zone_event, next_zone_exit), ~ifelse(event_type == "FAC", ., NA))) %>%
     fill(next_stoppage, .direction = "down") %>%
@@ -172,8 +201,12 @@ compute_FA_zone_time = function(df) {
                             game_seconds < next_stoppage &
                             game_seconds < next_neutral_zone_event &
                             game_seconds < next_zone_exit, TRUE, FALSE)) %>%
-    mutate(end_FA = ifelse(is_FA, min(c_across(c(next_stoppage, next_neutral_zone_event, next_zone_exit))), NA)) %>%
-    fill(end_FA, .direction = "down") %>%
+    mutate(is_FA = ifelse(last_faceoff_winner_faceoff_zone == "Off", is_FA, NA))
+  
+  df$end_FA = pmin(df$next_stoppage, df$next_neutral_zone_event, df$next_zone_exit, na.rm = TRUE)
+  df = df %>%
+    mutate(end_FA = ifelse(is_FA == TRUE, end_FA, NA)) %>%
+    # fill(end_FA, .direction = "down") %>%
     mutate(FA_zone_time = ifelse(is_FA, end_FA - start_FA, NA))
   return(df)
 }
