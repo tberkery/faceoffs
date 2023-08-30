@@ -70,7 +70,7 @@ load_sznajder_2022 = function() {
   all_zone_entries = read_csv("zone_entries_intermediate.csv")
   all_zone_exits = read_csv("zone_exits_intermediate.csv")
   source("Join_Entries.R")
-  big_join = join_entries(2022, 2023, all_zone_entries, all_zone_exits)
+  big_join = join_entries(2022, 2022, all_zone_entries, all_zone_exits)
   big_join = read_csv("big_join_after_fixes.csv")
   source("join_pbp_and_sznajder.R")
   pbp_with_role = condition(big_join, c(2022))
@@ -82,6 +82,7 @@ load_sznajder_2022 = function() {
 
 run_abbreviated = function() {
   big_join = read_csv("updated_big_join.csv")
+  big_join = read_csv("big_join_combined.csv")
   print(nrow(big_join %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
   mega_dict = assemble_stats()
   source("parse_roles.R")

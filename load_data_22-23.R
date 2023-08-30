@@ -147,7 +147,7 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
       
       
       
-      if (is_null(game_file_zone_entries) | is_null(game_file_zone_exits)) { # skip over games with empty zone entry file or empy zone exit file (e.g. one Dallas/Colorado game)
+      if (is_null(game_file_zone_entries) & is_null(game_file_zone_exits)) { # skip over games with empty zone entry file or empy zone exit file (e.g. one Dallas/Colorado game)
         next
       }
       
@@ -402,7 +402,7 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
   zone_entries$season = 20222023;
   zone_exits$season = 20222023;
   
-  zone_entries = zone_entries[!is.na(zone_entries$event_player_1),]
+  #zone_entries = zone_entries[!is.na(zone_entries$event_player_1),]
   
   zone_entries %>% write_csv("zone_entries_intermediate.csv")
   zone_exits %>% write_csv("zone_exits_intermediate.csv")
