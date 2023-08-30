@@ -37,7 +37,7 @@ seed_metrics = function(big_join) {
     ungroup() %>%
     select(-starts_with("home_on_"), -starts_with("away_on_"))
   
-  line_stats = read_csv("training_data_all_offensive_offensive.csv") %>%
+  line_stats = read_csv("training_data_all_offensive_offensive_2023.csv") %>%
     group_by(season, Win_Players, Lose_Players) %>%
     mutate(across(where(is.numeric), ~max(., na.rm = TRUE))) %>%
     distinct(season, Win_Players, Lose_Players, .keep_all = TRUE)
