@@ -17,8 +17,8 @@ load_sznajder = function() {
   all_zone_exits = rbind(zone_exits_17_18_19, zone_exits_20_21_22)
   source("Join_Entries.R")
   big_join = join_entries(2017, 2022, all_zone_entries, all_zone_exits)
-  big_join %>% write_csv("updated_big_join.csv")
-  big_join = read_csv("updated_big_join.csv")
+  big_join %>% write_csv("updated_big_join_new.csv")
+  big_join = read_csv("updated_big_join_new.csv")
   source("join_pbp_and_sznajder.R")
   pbp_with_role = condition(big_join, c(2017, 2018, 2020, 2021))
   check_leivo(pbp_with_role)
@@ -196,12 +196,12 @@ prep_all_model = function(data) {
   print(colnames(data_off_off))
   print(colnames(data_def_def))
   
-  cols = colnames(data_off_off %>% select(where(is.numeric)) %>% select(-net_xg, -attributable_possession))
+  cols = colnames(data_off_off %>% select(where(is.numeric)) %>% select(-net_xg, -attributable_possession, -season))
   data_off_off <- data_off_off %>%
     mutate(across(all_of(cols), ~scale(.))) %>%
     mutate(across(all_of(cols), ~as.numeric(.)))
   
-  cols = colnames(data_def_def %>% select(where(is.numeric)) %>% select(-net_xg, -attributable_possession))
+  cols = colnames(data_def_def %>% select(where(is.numeric)) %>% select(-net_xg, -attributable_possession, -season))
   data_def_def <- data_def_def %>%
     mutate(across(all_of(cols), ~scale(.))) %>%
     mutate(across(all_of(cols), ~as.numeric(.)))
