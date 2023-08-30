@@ -38,7 +38,7 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
   pbp = pbp %>%
     mutate(clock_time = format(clock_time, '%H:%M:%S')) %>%
     mutate(clock_time = substr(clock_time, 1, 5))
-  for (year in 2017:2017) {
+  for (year in 2017:2017) { # TODO: THIS IS VERY SHADY AND LEADS TO NO ZONE ENTRIES OR EXITS FOR 2018-2019
     formatted_season = paste0(year, "-", year + 1 - 2000, " Season")
 
     game_files = list.files(path = paste0("./Corey Sznajder Data/", formatted_season, "/Game Reports"), 

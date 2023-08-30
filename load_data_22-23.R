@@ -1,11 +1,12 @@
 library(tidyverse)
+library(dplyr)
 library(stringr)
 library(fuzzyjoin)
 library(lubridate)
 library(hash)
 source("link.R")
 source("zone_entry.R")
-library(sets)
+#library(sets)
 
 #notes
 #changed titles in 20739 (NY -> NYI), 20667, 20657, 20656, 20624 (should be TB), 20523, 20416 (space between . and ARI), 20401, 20305, 20288, 20005
@@ -16,23 +17,12 @@ start_year = 2022
 end_year = 2023
 
 load_eh_pbp = function(start_year, end_year) {
-  next_year = start_year + 1
-  pbp = read_csv(paste0("EH_pbp_query_", start_year, next_year, ".csv")) %>%
+  #next_year = start_year + 1
+  file_name = paste0("EH_pbp_query_", start_year, end_year, ".csv")
+  print(file_name)
+  pbp = read_csv(file_name) %>%
     mutate(is_pp = (game_strength_state == '5v4' |
-                      game_strength_state == '4v5')) #%>%
-  #filter(is_pp == TRUE)
-  one_plus = next_year
-  if (one_plus < end_year - 1) {
-    for (year in one_plus:(end_year - 1)) {
-      next_year = year + 1
-      pbp_year = read_csv(paste0("EH_pbp_query_", year, next_year, ".csv"))
-      pbp_year_pp = pbp_year %>%
-        mutate(is_pp = (game_score_state == '5v4' |
-                          game_score_state == '4v5')) %>%
-        #filter(is_pp == TRUE)
-        pbp = rbind(pbp, pbp_year_pp)
-    }
-  }
+               game_strength_state == '4v5'))
   pbp_initial = pbp
   print(pbp)
   return(pbp)
@@ -49,7 +39,7 @@ get_date_teams_dict = function(pbp) {
     char_game_date = as.character(game_date)
     home_away_str = paste0(pbp_unique_games[i,]$home_team," ",pbp_unique_games[i,]$away_team)
     if (!has.key(char_game_date, date_home_away)) {
-      new_set <- set()
+      new_set <- sets::set()
       date_home_away[[char_game_date]] = new_set
     }
     
