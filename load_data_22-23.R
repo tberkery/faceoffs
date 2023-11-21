@@ -148,6 +148,7 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
       
       
       if (is_null(game_file_zone_entries) & is_null(game_file_zone_exits)) { # skip over games with empty zone entry file or empy zone exit file (e.g. one Dallas/Colorado game)
+        print("continued to next")
         next
       }
       
@@ -396,16 +397,18 @@ load_sznajder_game_reports = function(start_year, end_year, pbp) {
     select(season_game_index, home_team, away_team) %>%
     distinct(season_game_index, home_team, away_team, .keep_all = TRUE)
   
-  zone_entries = create_zone_entries(pbp_with_sznajder, games_zone_entries)
-  zone_exits = create_zone_exits(pbp_with_sznajder, games_zone_exits)
+  zone_entries = create_zone_entries(pbp_with_sznajder, games_zone_entries) %>%
+    filter(event_description != "NA entry by NA against NA")
+  zone_exits = create_zone_exits(pbp_with_sznajder, games_zone_exits) %>%
+    filter(event_description != "NA entry by NA against NA")
   
   zone_entries$season = 20222023;
   zone_exits$season = 20222023;
   
   #zone_entries = zone_entries[!is.na(zone_entries$event_player_1),]
   
-  zone_entries %>% write_csv("zone_entries_intermediate.csv")
-  zone_exits %>% write_csv("zone_exits_intermediate.csv")
+  zone_entries %>% write_csv("zone_entries_intermediate_fresh.csv")
+  zone_exits %>% write_csv("zone_exits_intermediate_fresh.csv")
   return(pbp_with_sznajder)
 }
 

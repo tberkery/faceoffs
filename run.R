@@ -67,8 +67,8 @@ load_sznajder = function() {
 load_sznajder_2022 = function() {
   source("load_data_22-23.R")
   load_season(2022, 2023) # same note... this is 2020-2021 and 2021-2022.
-  all_zone_entries = read_csv("zone_entries_intermediate.csv")
-  all_zone_exits = read_csv("zone_exits_intermediate.csv")
+  all_zone_entries = read_csv("zone_entries_intermediate_fresh.csv")
+  all_zone_exits = read_csv("zone_exits_intermediate_fresh.csv")
   source("Join_Entries.R")
   big_join = join_entries(2022, 2022, all_zone_entries, all_zone_exits)
   big_join = read_csv("big_join_after_fixes.csv")

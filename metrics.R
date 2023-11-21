@@ -16,7 +16,7 @@ seed_metrics = function(big_join) {
   
   off_win_subset = FA_zone_time %>%
     drop_na(is_FA, end_FA, start_FA) %>%
-    filter(event_type == "FAC", last_faceoff_winner_faceoff_zone == "Off") %>%
+    filter(event_type == "FAC", last_faceoff_winner_faceoff_zone == "Def") %>%
     mutate(FA_zone_time = replace_na(FA_zone_time, 0))
   source("parse_roles.R")
   mega_dict = assemble_stats()
@@ -37,7 +37,7 @@ seed_metrics = function(big_join) {
     ungroup() %>%
     select(-starts_with("home_on_"), -starts_with("away_on_"))
   
-  line_stats = read_csv("training_data_all_offensive_offensive_2023.csv") %>%
+  line_stats = read_csv("training_data_all_defensive_defensive_2023.csv") %>%
     group_by(season, Win_Players, Lose_Players) %>%
     mutate(across(where(is.numeric), ~max(., na.rm = TRUE))) %>%
     distinct(season, Win_Players, Lose_Players, .keep_all = TRUE)
@@ -201,7 +201,7 @@ compute_FA_zone_time = function(df) {
                             game_seconds < next_stoppage &
                             game_seconds < next_neutral_zone_event &
                             game_seconds < next_zone_exit, TRUE, FALSE)) %>%
-    mutate(is_FA = ifelse(last_faceoff_winner_faceoff_zone == "Off", is_FA, NA))
+    mutate(is_FA = ifelse(last_faceoff_winner_faceoff_zone == "Def", is_FA, NA))
   
   df$end_FA = pmin(df$next_stoppage, df$next_neutral_zone_event, df$next_zone_exit, na.rm = TRUE)
   df = df %>%
