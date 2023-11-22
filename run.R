@@ -5,8 +5,7 @@ source("./load_sznajder/load_data_20-22.R")
 source("Join_Entries.R")
 source("join_pbp_and_sznajder.R")
 
-
-load_sznajder = function() {
+curate_sznajder = function() { # function designed to do 2017-2022
   load_season(2017, 2019) # note that this does the 2017-2018 and 2018-2019 seasons (i.e. boundaries are inclusive, exclusive)
   zone_entries_17_18_19 = read_csv("zone_entries_intermediate.csv")
   zone_exits_17_18_19 = read_csv("zone_exits_intermediate.csv")
@@ -17,11 +16,30 @@ load_sznajder = function() {
   all_zone_entries = rbind(zone_entries_17_18_19, zone_entries_20_21_22)
   all_zone_exits = rbind(zone_exits_17_18_19, zone_exits_20_21_22)
   
-  big_join = join_entries(2017, 2022, all_zone_entries, all_zone_exits)
-  big_join %>% write_csv("updated_big_join_new.csv")
-  big_join = read_csv("updated_big_join_new.csv")
+  return_list = vector(mode = "list", length = 2)
+  return_list[[1]] = all_zone_entries
+  return_list[[2]] = all_zone_exits
+  return(return_list)
+}
 
-  pbp_with_role = condition(big_join, c(2017, 2018, 2020, 2021))
+connect_pbp_and_sznajder = function(return_list,
+                                    start_year = 2017,
+                                    end_year = 2022) {
+  all_zone_entries = return_list[[1]]
+  all_zone_exits = return_list[[2]]
+  
+  tryCatch({
+    big_join = read_csv("updated_big_join_new.csv")
+  }, error = function(e) {
+    big_join = join_entries(start_year, end_year, all_zone_entries, all_zone_exits)
+    big_join %>% write_csv("updated_big_join_new.csv")
+  })  
+  
+  return(big_join)
+}
+
+identify_roles_and_add_stats = function(big_join, years = c(2017, 2018, 2020, 2021)) {
+  pbp_with_role = condition(big_join, years)
   check_leivo(pbp_with_role)
   temp = pbp_with_role %>%
     filter(event_player_1 == 'NAZEM.KADRI')
@@ -64,6 +82,7 @@ load_sznajder = function() {
     drop_na()
   check_leivo(data_with_microstats)
   model_name = ''
+  return(data_with_microstats)
 }
 
 load_sznajder_2022 = function() {
