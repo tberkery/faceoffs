@@ -7,6 +7,7 @@ source("join_pbp_and_sznajder.R")
 
 curate_sznajder = function() { # function designed to do 2017-2022
   load_season(2017, 2019) # note that this does the 2017-2018 and 2018-2019 seasons (i.e. boundaries are inclusive, exclusive)
+  # following csvs are intermediary files updated by load_season
   zone_entries_17_18_19 = read_csv("zone_entries_intermediate.csv")
   zone_exits_17_18_19 = read_csv("zone_exits_intermediate.csv")
   
@@ -83,6 +84,16 @@ identify_roles_and_add_stats = function(big_join, years = c(2017, 2018, 2020, 20
   check_leivo(data_with_microstats)
   model_name = ''
   return(data_with_microstats)
+}
+
+run = function() {
+  zone_entries_and_exits_list = curate_sznajder()
+  all_zone_entries = zone_entries_and_exits_list[[1]]
+  all_zone_exits = zone_entries_and_exits_list[[2]]
+  sznajder_and_pbp = connect_pbp_and_sznajder(zone_entries_and_exits_list,
+                                              2017, 2022)
+  data_contextualized = identify_roles_and_add_stats(sznajder_and_pbp, c(2017, 2018, 2020, 2021))
+  return(data_contextualized)
 }
 
 load_sznajder_2022 = function() {
