@@ -5,6 +5,13 @@ source("./load_sznajder/load_data_20-22.R")
 source("Join_Entries.R")
 source("join_pbp_and_sznajder.R")
 
+source("parse_roles.R")
+source("impute_percentile.R")
+source("grouped_role.R")
+source("condense_lines.R")
+
+# -------- RUN WITH CONTEXT BY ROLE (F1, F2, F3, D1, D2, D3, G1) -------
+
 curate_sznajder = function() { # function designed to do 2017-2022
   load_season(2017, 2019) # note that this does the 2017-2018 and 2018-2019 seasons (i.e. boundaries are inclusive, exclusive)
   # following csvs are intermediary files updated by load_season
@@ -97,7 +104,7 @@ run = function() {
 }
 
 load_sznajder_2022 = function() {
-
+  
   load_season(2022, 2023) # same note... this is 2020-2021 and 2021-2022.
   all_zone_entries = read_csv("zone_entries_intermediate_fresh.csv")
   all_zone_exits = read_csv("zone_exits_intermediate_fresh.csv")
@@ -113,13 +120,28 @@ load_sznajder_2022 = function() {
   dataset = subset_relevant_cols(dataset)
 }
 
-run_abbreviated = function() {
-  big_join = read_csv("updated_big_join.csv")
-  big_join = read_csv("big_join_combined.csv")
+# ------- RUN WITH CONTEXT BY POSITION (F, D, G) -------
+
+get_sznajder_and_pbp = function() {
+  tryCatch({
+    big_join = read_csv("updated_big_join.csv")
+    return(big_join)
+    #big_join = read_csv("big_join_combined.csv")
+  }, error = function(e) {
+    zone_entries_and_exits_list = curate_sznajder()
+    all_zone_entries = zone_entries_and_exits_list[[1]]
+    all_zone_exits = zone_entries_and_exits_list[[2]]
+    big_join = connect_pbp_and_sznajder(zone_entries_and_exits_list,
+                                                2017, 2022)
+    return(big_join)
+  })
+}
+
+contextualize_with_EH_stats = function(big_join) {
   print(nrow(big_join %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
-  source("driver.R")
+
   mega_dict = connect_skaters_and_goaltending_to_team_performance()
-  source("parse_roles.R")
+  
   faceoffs = identify_roles(big_join, mega_dict)
   print(nrow(faceoffs %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
   faceoffs = identify_faceoff_winners(faceoffs)
@@ -136,8 +158,10 @@ run_abbreviated = function() {
     select(-any_of(remove_cols)) %>%
     filter(game_strength_state == '5v5')
   print(nrow(dataset %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
-  
-  
+  return(dataset)
+}
+
+contextualize_with_microstats = function(dataset) {
   microstats = read_csv("microstats.csv")
   data_with_microstats = dataset %>%
     mutate(year = as.numeric(str_sub(season, 1, 4))) %>%
@@ -151,8 +175,11 @@ run_abbreviated = function() {
     left_join(microstats, by = c('Player_Win_F3' = 'Player', 'year'), suffix = c('_Lose_F2', '_Lose_F3')) %>%
     left_join(microstats, by = c('Player_Win_D1' = 'Player', 'year')) %>%
     left_join(microstats, by = c('Player_Win_D2' = 'Player', 'year'), suffix = c('_Lose_D1', '_Lose_D2'))
-  
-  source("impute_percentile.R")
+  return(data_with_microstats)
+}
+
+impute_missing = function(data_with_microstats) {
+
   replacement_thresholds = determine_thresholds_via_percentile(data_with_microstats, 0.2)
   dataset_imputed = impute_by_percentile_threshold(data_with_microstats, replacement_thresholds)
   print(nrow(dataset_imputed %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
@@ -186,14 +213,20 @@ run_abbreviated = function() {
   # added_stats = dataset_imputed %>%
   #   ungroup() %>%
   #   select(game_id, season, event_type, game_seconds, any_of(microstats_colnames))
-  
-  source("join_pbp_and_sznajder.R")
+  return(dataset_imputed)
+}
+
+condition = function(big_join, dataset_imputed) {
+
   dataset_with_objective = condition_updated(big_join, dataset_imputed)
   
   # dataset_with_objective_and_microstats = dataset_with_objective %>%
   #   left_join(added_stats, by = c("game_id", "season", "event_type", "game_seconds"))
-  
-  source("grouped_role.R")
+  return(dataset_with_objective)
+}
+
+broaden_by_role = function(dataset_with_objective) {
+
   dataset_broadened = group_roles(dataset_with_objective)
   data = dataset_broadened
   data = data %>%
@@ -212,7 +245,7 @@ run_abbreviated = function() {
   data_line_matchups = data %>%
     condense_to_line_matchups()
   model_name = ''
-  prep_all_model(data_line_matchups)
+  return(data_line_matchups)
 }
 
 prep_all_model = function(data) {
