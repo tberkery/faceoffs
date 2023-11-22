@@ -1,31 +1,33 @@
 library(tidyverse)
-assemble_stats = function() {
-  source("driver.R")
-  mega_dict = connect_skaters_and_goaltending_to_team_performance()
-}
+
+source("./load_sznajder/load_data.R")
+source("./load_sznajder/load_data_20-22.R")
+source("Join_Entries.R")
+source("join_pbp_and_sznajder.R")
+
 
 load_sznajder = function() {
-  source("load_data.R")
   load_season(2017, 2019) # note that this does the 2017-2018 and 2018-2019 seasons (i.e. boundaries are inclusive, exclusive)
   zone_entries_17_18_19 = read_csv("zone_entries_intermediate.csv")
   zone_exits_17_18_19 = read_csv("zone_exits_intermediate.csv")
-  source("load_data_20-22.R")
+  
   load_season(2020, 2022) # same note... this is 2020-2021 and 2021-2022.
   zone_entries_20_21_22 = read_csv("zone_entries_intermediate.csv")
   zone_exits_20_21_22 = read_csv("zone_exits_intermediate.csv")
   all_zone_entries = rbind(zone_entries_17_18_19, zone_entries_20_21_22)
   all_zone_exits = rbind(zone_exits_17_18_19, zone_exits_20_21_22)
-  source("Join_Entries.R")
+  
   big_join = join_entries(2017, 2022, all_zone_entries, all_zone_exits)
   big_join %>% write_csv("updated_big_join_new.csv")
   big_join = read_csv("updated_big_join_new.csv")
-  source("join_pbp_and_sznajder.R")
+
   pbp_with_role = condition(big_join, c(2017, 2018, 2020, 2021))
   check_leivo(pbp_with_role)
   temp = pbp_with_role %>%
     filter(event_player_1 == 'NAZEM.KADRI')
   print(nrow(temp))
-  mega_dict = assemble_stats()
+  source("driver.R")
+  mega_dict = connect_skaters_and_goaltending_to_team_performance
   dataset = get_role_encoded_stats(pbp_with_role, mega_dict) #ERROR SEEMS TO BE HERE
   dataset %>% write_csv("new_dataset_updated_2.csv")
   dataset = subset_relevant_cols(dataset)
@@ -65,7 +67,7 @@ load_sznajder = function() {
 }
 
 load_sznajder_2022 = function() {
-  source("load_data_22-23.R")
+
   load_season(2022, 2023) # same note... this is 2020-2021 and 2021-2022.
   all_zone_entries = read_csv("zone_entries_intermediate_fresh.csv")
   all_zone_exits = read_csv("zone_exits_intermediate_fresh.csv")
@@ -74,7 +76,8 @@ load_sznajder_2022 = function() {
   big_join = read_csv("big_join_after_fixes.csv")
   source("join_pbp_and_sznajder.R")
   pbp_with_role = condition(big_join, c(2022))
-  mega_dict = assemble_stats()
+  source("driver.R")
+  mega_dict = connect_skaters_and_goaltending_to_team_performance
   dataset = get_role_encoded_stats(pbp_with_role, mega_dict)
   dataset %>% write_csv("new_dataset_updated_2022.csv")
   dataset = subset_relevant_cols(dataset)
@@ -84,7 +87,8 @@ run_abbreviated = function() {
   big_join = read_csv("updated_big_join.csv")
   big_join = read_csv("big_join_combined.csv")
   print(nrow(big_join %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
-  mega_dict = assemble_stats()
+  source("driver.R")
+  mega_dict = connect_skaters_and_goaltending_to_team_performance()
   source("parse_roles.R")
   faceoffs = identify_roles(big_join, mega_dict)
   print(nrow(faceoffs %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
@@ -224,7 +228,7 @@ check_leivo = function(temp) {
 }
 
 projections = function() {
-  source("load_data_22-23.R")
+  source("./load_sznajder/load_data_22-23.R")
   load_season(2022, 2023)
   all_zone_entries = read_csv("zone_entries_intermediate.csv")
   all_zone_exits = read_csv("zone_exits_intermediate.csv")
@@ -232,7 +236,8 @@ projections = function() {
   big_join = join_entries(2022, 2022, all_zone_entries, all_zone_exits)
   #big_join_2022 = read_csv("big_join_after_fixes.csv")
   source("join_pbp_and_sznajder.R")
-  mega_dict = assemble_stats()
+  source("driver.R")
+  mega_dict = connect_skaters_and_goaltending_to_team_performance
   source("parse_roles.R")
   faceoffs = identify_roles(big_join, mega_dict)
   print(nrow(faceoffs %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
