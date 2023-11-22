@@ -1,9 +1,8 @@
 library(tidyverse)
 
-source("./load_sznajder/load_data.R")
-source("./load_sznajder/load_data_20-22.R")
 source("Join_Entries.R")
 source("join_pbp_and_sznajder.R")
+source("driver.R")
 
 source("parse_roles.R")
 source("impute_percentile.R")
@@ -13,11 +12,13 @@ source("condense_lines.R")
 # -------- RUN WITH CONTEXT BY ROLE (F1, F2, F3, D1, D2, D3, G1) -------
 
 curate_sznajder = function() { # function designed to do 2017-2022
+  source("./load_sznajder/load_data.R")
   load_season(2017, 2019) # note that this does the 2017-2018 and 2018-2019 seasons (i.e. boundaries are inclusive, exclusive)
   # following csvs are intermediary files updated by load_season
   zone_entries_17_18_19 = read_csv("zone_entries_intermediate.csv")
   zone_exits_17_18_19 = read_csv("zone_exits_intermediate.csv")
   
+  source("./load_sznajder/load_data_20-22.R")
   load_season(2020, 2022) # same note... this is 2020-2021 and 2021-2022.
   zone_entries_20_21_22 = read_csv("zone_entries_intermediate.csv")
   zone_exits_20_21_22 = read_csv("zone_exits_intermediate.csv")
@@ -132,14 +133,14 @@ get_sznajder_and_pbp = function() {
     all_zone_entries = zone_entries_and_exits_list[[1]]
     all_zone_exits = zone_entries_and_exits_list[[2]]
     big_join = connect_pbp_and_sznajder(zone_entries_and_exits_list,
-                                                2017, 2022)
+                                        2017, 2022)
     return(big_join)
   })
 }
 
 contextualize_with_EH_stats = function(big_join) {
   print(nrow(big_join %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
-
+  
   mega_dict = connect_skaters_and_goaltending_to_team_performance()
   
   faceoffs = identify_roles(big_join, mega_dict)
@@ -170,16 +171,16 @@ contextualize_with_microstats = function(dataset) {
     left_join(microstats, by = c('Player_Win_F3' = 'Player', 'year')) %>%
     left_join(microstats, by = c('Player_Win_D1' = 'Player', 'year'), suffix = c('_Win_F3', '_Win_D1')) %>%
     left_join(microstats, by = c('Player_Win_D2' = 'Player', 'year')) %>%
-    left_join(microstats, by = c('Player_Win_F1' = 'Player', 'year'), suffix = c('_Win_D2', '_Lose_F1')) %>%
-    left_join(microstats, by = c('Player_Win_F2' = 'Player', 'year')) %>%
-    left_join(microstats, by = c('Player_Win_F3' = 'Player', 'year'), suffix = c('_Lose_F2', '_Lose_F3')) %>%
-    left_join(microstats, by = c('Player_Win_D1' = 'Player', 'year')) %>%
-    left_join(microstats, by = c('Player_Win_D2' = 'Player', 'year'), suffix = c('_Lose_D1', '_Lose_D2'))
+    left_join(microstats, by = c('Player_Lose_F1' = 'Player', 'year'), suffix = c('_Win_D2', '_Lose_F1')) %>%
+    left_join(microstats, by = c('Player_Lose_F2' = 'Player', 'year')) %>%
+    left_join(microstats, by = c('Player_Lose_F3' = 'Player', 'year'), suffix = c('_Lose_F2', '_Lose_F3')) %>%
+    left_join(microstats, by = c('Player_Lose_D1' = 'Player', 'year')) %>%
+    left_join(microstats, by = c('Player_Lose_D2' = 'Player', 'year'), suffix = c('_Lose_D1', '_Lose_D2'))
   return(data_with_microstats)
 }
 
 impute_missing = function(data_with_microstats) {
-
+  
   replacement_thresholds = determine_thresholds_via_percentile(data_with_microstats, 0.2)
   dataset_imputed = impute_by_percentile_threshold(data_with_microstats, replacement_thresholds)
   print(nrow(dataset_imputed %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
@@ -216,8 +217,8 @@ impute_missing = function(data_with_microstats) {
   return(dataset_imputed)
 }
 
-condition = function(big_join, dataset_imputed) {
-
+perform_conditioning = function(big_join, dataset_imputed) {
+  
   dataset_with_objective = condition_updated(big_join, dataset_imputed)
   
   # dataset_with_objective_and_microstats = dataset_with_objective %>%
@@ -226,7 +227,7 @@ condition = function(big_join, dataset_imputed) {
 }
 
 broaden_by_role = function(dataset_with_objective) {
-
+  
   dataset_broadened = group_roles(dataset_with_objective)
   data = dataset_broadened
   data = data %>%
@@ -280,8 +281,14 @@ prep_all_model = function(data) {
   data_off_off = data_off_off %>% select_if(~ !any(is.na(.)))
   data_def_def = data_def_def %>% select_if(~ !any(is.na(.)))
   
-  data_off_off %>% select(-winner_xg, -loser_xg, -contains("FOW"), -contains("FOL")) %>% select(-ends_with("_All")) %>% write_csv(paste0('training_data_', model_name, '_offensive_offensive.csv'))
-  data_def_def %>% select(-winner_xg, -loser_xg, -contains("FOW"), -contains("FOL")) %>% select(-ends_with("_All")) %>% write_csv(paste0('training_data_', model_name, '_defensive_defensive.csv'))
+  data_off_off %>% 
+    select(-winner_xg, -loser_xg, -contains("FOW"), -contains("FOL")) %>% 
+    select(-ends_with("_All")) %>% 
+    write_csv(paste0('new_training_data_', model_name, '_offensive_offensive.csv'))
+  data_def_def %>% 
+    select(-winner_xg, -loser_xg, -contains("FOW"), -contains("FOL")) %>% 
+    select(-ends_with("_All")) %>% 
+    write_csv(paste0('new_training_data_', model_name, '_defensive_defensive.csv'))
 }
 
 check_leivo = function(temp) {
@@ -291,17 +298,17 @@ check_leivo = function(temp) {
 }
 
 projections = function() {
-  source("./load_sznajder/load_data_22-23.R")
+  #source("./load_sznajder/load_data_22-23.R")
   load_season(2022, 2023)
   all_zone_entries = read_csv("zone_entries_intermediate.csv")
   all_zone_exits = read_csv("zone_exits_intermediate.csv")
-  source("Join_Entries.R")
+  #source("Join_Entries.R")
   big_join = join_entries(2022, 2022, all_zone_entries, all_zone_exits)
   #big_join_2022 = read_csv("big_join_after_fixes.csv")
-  source("join_pbp_and_sznajder.R")
+  #source("join_pbp_and_sznajder.R")
   source("driver.R")
   mega_dict = connect_skaters_and_goaltending_to_team_performance
-  source("parse_roles.R")
+  #source("parse_roles.R")
   faceoffs = identify_roles(big_join, mega_dict)
   print(nrow(faceoffs %>% filter(game_id == 2017020001, event_type == 'FAC', event_zone != 'Neu')))
   faceoffs = identify_faceoff_winners(faceoffs)
@@ -396,4 +403,14 @@ projections = function() {
   model_name = ''
   prep_all_model(data_line_matchups)
   
+}
+
+run_with_context_by_position = function() {
+  sznajder_and_pbp = get_sznajder_and_pbp()
+  sznajder_and_pbp_with_context = contextualize_with_EH_stats(sznajder_and_pbp)
+  #sznajder_and_pbp_with_context_and_microstats = contextualize_with_microstats(sznajder_and_pbp_with_context)
+  sznajder_and_pbp_with_context_and_microstats_imputed = impute_missing(sznajder_and_pbp_with_context)
+  sznajder_and_pbp_objective = perform_conditioning(sznajder_and_pbp, sznajder_and_pbp_with_context_and_microstats_imputed)
+  data_line_matchups = broaden_by_role(sznajder_and_pbp_objective)
+  prep_all_model(data_line_matchups)
 }
