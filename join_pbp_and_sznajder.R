@@ -148,12 +148,23 @@ impute_missing_values = function(data) {
 }
 
 condition_updated = function(big_join, dataset_imputed) {
+  big_join_old = big_join
+  big_join = big_join %>%
+    mutate(season = na.locf(season))
   game_date_dict = big_join %>%
     select(season, game_id, game_date) %>%
+    mutate(season = as.numeric(season)) %>%
+    filter(game_date != "2023-02-23") %>%
     distinct(.keep_all = TRUE) %>%
     drop_na()
+  games_with_zone_entries = big_join %>%
+    select(game_id, season, event_type) %>%
+    filter(event_type == "ZONE_ENTRY") %>%
+    distinct(game_id, season)
+  same_games = game_date_dict %>%
+    inner_join(games_with_zone_entries, by = c('season', 'game_id'))
   dataset_imputed_with_game_date = dataset_imputed %>%
-    inner_join(game_date_dict, by = c('season', 'game_id'))
+    inner_join(same_games, by = c('season', 'game_id'))
   faceoffs_data = big_join %>%
     filter(!(event_type == 'ZONE_ENTRY' & str_detect(event_description, "FAC entry") == TRUE)) %>% # ignore faceoff driven zone entries (as tracked by Sznajder)
     mutate(zone_change_time = 
@@ -177,15 +188,15 @@ condition_updated = function(big_join, dataset_imputed) {
              zone_time <= 250) %>%
     mutate(game_date = substr(game_date, 1, 10))
   
-  same_games = dataset_imputed_with_game_date %>%
-    select(game_date, season, home_team, away_team) %>%
-    mutate(game_date = substr(game_date, 1, 10)) %>%
-    distinct(game_date, season, home_team, away_team, .keep_all = TRUE) %>% # ADDED THIS!
-    inner_join(faceoffs_data,
-               by = c('home_team', 'away_team', 'game_date', 'season' = 'season')) %>%
-    select(game_id) %>%
-    distinct(game_id)
-  
+  # same_games = dataset_imputed_with_game_date %>%
+  #   select(game_date, season, home_team, away_team) %>%
+  #   mutate(game_date = substr(game_date, 1, 10)) %>%
+  #   distinct(game_date, season, home_team, away_team, .keep_all = TRUE) %>% # ADDED THIS!
+  #   inner_join(faceoffs_data,
+  #              by = c('home_team', 'away_team', 'game_date', 'season' = 'season')) %>%
+  #   select(game_id) %>%
+  #   distinct(game_id)
+  # 
   faceoffs_data = faceoffs_data %>%
     arrange(game_date, game_id, game_seconds)
   
