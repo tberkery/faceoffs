@@ -180,6 +180,7 @@ condition_updated = function(big_join, dataset_imputed) {
   same_games = dataset_imputed_with_game_date %>%
     select(game_date, season, home_team, away_team) %>%
     mutate(game_date = substr(game_date, 1, 10)) %>%
+    distinct(game_date, season, home_team, away_team, .keep_all = TRUE) %>% # ADDED THIS!
     inner_join(faceoffs_data,
                by = c('home_team', 'away_team', 'game_date', 'season' = 'season')) %>%
     select(game_id) %>%
