@@ -32,22 +32,22 @@ curate_sznajder = function() { # function designed to do 2017-2022
 }
 
 connect_pbp_and_sznajder = function(return_list,
-                                    start_year = 2017,
-                                    end_year = 2022) {
+                                    year) {
   all_zone_entries = return_list[[1]]
   all_zone_exits = return_list[[2]]
   
   tryCatch({
     big_join = read_csv("updated_big_join_new.csv")
   }, error = function(e) {
-    big_join = join_entries(start_year, end_year, all_zone_entries, all_zone_exits)
+    big_join = join_entries(year, year, all_zone_entries, all_zone_exits)
     big_join %>% write_csv("updated_big_join_new.csv")
   })  
   
   return(big_join)
 }
 
-identify_roles_and_add_stats = function(big_join, years = c(2017, 2018, 2020, 2021)) {
+identify_roles_and_add_stats = function(big_join, year) {
+  years = c(year)
   pbp_with_role = condition(big_join, years)
   check_leivo(pbp_with_role)
   temp = pbp_with_role %>%
@@ -98,9 +98,14 @@ run = function() {
   zone_entries_and_exits_list = curate_sznajder()
   all_zone_entries = zone_entries_and_exits_list[[1]]
   all_zone_exits = zone_entries_and_exits_list[[2]]
-  sznajder_and_pbp = connect_pbp_and_sznajder(zone_entries_and_exits_list,
-                                              2017, 2022)
-  data_contextualized = identify_roles_and_add_stats(sznajder_and_pbp, c(2017, 2018, 2020, 2021))
+  contextualized_data = NULL
+  for (year in c(2017, 2018, 2020, 2021)) {
+    print(year)
+    sznajder_and_pbp = connect_pbp_and_sznajder(zone_entries_and_exits_list,
+                                                year)
+    data_contextualized = identify_roles_and_add_stats(sznajder_and_pbp, year)
+    contextualized_data = rbind(contextualized_data, data_contextualized)
+  }
   return(data_contextualized)
 }
 
