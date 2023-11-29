@@ -288,6 +288,7 @@ condition_updated = function(big_join, dataset_imputed) {
     left_join(faceoffs_objective_summary, by = c('game_id', 'season', 'game_seconds', 'event_type')) %>%
     filter(event_zone != 'Neu') %>%
     drop_na()
+  
 
   temp = data_with_objective %>%
     select(season, game_id, game_date, game_period, game_seconds, event_type, event_team, winner_xg, loser_xg, event_player_1, event_player_2)
