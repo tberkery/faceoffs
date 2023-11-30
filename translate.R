@@ -69,6 +69,25 @@ summary_figures = bj %>%
             xG_per_ZT = sum(pred_goal, na.rm = TRUE) / sum(ZT_since_last_event, na.rm = TRUE),
             .groups = 'keep')
 
+summary_players = bj %>%
+  arrange(season, game_id, game_seconds) %>%
+  mutate(ZT_since_last_event = case_when(
+    event_type == "FAC" ~ 0,
+    game_seconds >= lag(game_seconds) ~ game_seconds - lag(game_seconds),
+    TRUE ~ NA_real_,
+  )) %>%
+  filter(FA_xG_status == TRUE) %>%
+  filter(event_zone %in% c("Off", "Neu", "Def")) %>%
+  group_by(event_player_1, game_strength_state, event_zone) %>%
+  summarize(cumulative_xG = sum(pred_goal, na.rm = TRUE),
+            cumulative_ZT = sum(ZT_since_last_event, na.rm = TRUE),
+            xG_per_ZT = sum(pred_goal, na.rm = TRUE) / sum(ZT_since_last_event, na.rm = TRUE),
+            .groups = 'keep')
+
+player_scoring_rates = summary_players %>%
+  filter(game_strength_state == "5v5",
+         event_zone == "Off")
+
 five_on_five = summary_stats %>%
   filter(game_strength_state == "5v5")
 
@@ -81,3 +100,15 @@ four_on_five = summary_stats %>%
 print(sum(five_on_five$cumulative_xG, na.rm = TRUE) / sum(five_on_five$cumulative_ZT, na.rm = TRUE))
 print(sum(five_on_four$cumulative_xG, na.rm = TRUE) / sum(five_on_four$cumulative_ZT, na.rm = TRUE))
 print(sum(four_on_five$cumulative_xG, na.rm = TRUE) / sum(four_on_five$cumulative_ZT, na.rm = TRUE))
+
+off_rating_contextualized = off_rating_contextualized %>% 
+  mutate(median_IXG = median_IZT * 0.0044171540) %>%
+  mutate(plus_one = median_IXG * 82 * 1,
+         plus_two = median_IXG * 82 * 2,
+         plus_three = median_IXG * 82 * 3,
+         plus_four = median_IXG * 82 * 4,
+         plus_five = median_IXG * 82 * 5,
+         plus_six = median_IXG * 82 * 6)
+         
+
+
