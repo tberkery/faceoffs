@@ -45,6 +45,15 @@ off_rating = rbind(winner_grouped, loser_grouped %>%
             count = first(count) + last(count),
             .groups = 'keep')
 
+# GAM based adjustment
+
+adjuster = mgcv::gam(data = off_rating, formula = mean_IZT ~ s(count_off) + s(count_def))
+expectation_given_deployment = predict(adjuster, newdata = off_rating)
+off_rating_adjusted = off_rating
+off_rating_adjusted$xIZT = expectation_given_deployment
+off_rating_adjusted = off_rating_adjusted %>%
+  mutate(IZT_vs_exp = mean_IZT - xIZT)
+
 # RATING RELATIVE TO EXPECTED
 
 mean_win_ZT = mean(preds$.pred)
@@ -87,3 +96,8 @@ off_rating_rel_expected = rbind(winner_grouped_rel_expected, loser_grouped_rel_e
 
 off_rating_rel_expected = off_rating_rel_expected %>%
   arrange(desc(mean_IZT))
+
+# ADJUST EXPECTED BY OPPONENT
+
+off_rating_contextualized = winner_grouped %>%
+  inner_join(loser_grouped_sub, by = c('event_player_2' = 'event_player_2'))
