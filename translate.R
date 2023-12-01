@@ -102,7 +102,7 @@ print(sum(five_on_four$cumulative_xG, na.rm = TRUE) / sum(five_on_four$cumulativ
 print(sum(four_on_five$cumulative_xG, na.rm = TRUE) / sum(four_on_five$cumulative_ZT, na.rm = TRUE))
 
 off_rating_contextualized = off_rating_contextualized %>% 
-  mutate(median_IXG = median_IZT * 0.0044171540) %>%
+  mutate(median_IXG = median_IZT * 0.0044171540) %>% # used to use 0.0044171540
   mutate(plus_one = median_IXG * 82 * 1,
          plus_two = median_IXG * 82 * 2,
          plus_three = median_IXG * 82 * 3,
@@ -110,5 +110,89 @@ off_rating_contextualized = off_rating_contextualized %>%
          plus_five = median_IXG * 82 * 5,
          plus_six = median_IXG * 82 * 6)
          
+visual_data = off_rating_contextualized %>% 
+  filter(count >= 5) %>%
+  select(event_player_1, season, median_IZT, median_IXG) %>%
+  rename(Player = event_player_1,
+         Season = season,
+         IZT = median_IZT,
+         NXG = median_IXG)
+visual_data %>% write_csv("table_1_data.csv")
 
+additional_faceoff_win_implications = off_rating_contextualized %>%
+  filter(count >= 5) %>%
+  select(event_player_1, season, contains("plus")) %>%
+  rename(Player = event_player_1,
+         Season = season,
+         `+1` = plus_one,
+         `+2` = plus_two,
+         `+3` = plus_three,
+         `+4` = plus_four,
+         `+5` = plus_five,
+         `+6` = plus_six) %>%
+  arrange(desc(`+1`))
+additional_faceoff_win_implications %>% write_csv("table_2_data.csv")
 
+pbp_2021 = read_csv("EH_pbp_query_20212022.csv")
+fac_2021 = pbp_2021 %>%
+  filter(event_type == "FAC")
+
+fac_deploy_summary = fac_2021 %>%
+  select(event_zone, event_player_1, event_player_2) %>%
+  mutate(player_1_zone = event_zone,
+         player_2_zone = case_when(
+           event_zone == "Off" ~ "Def",
+           event_zone == "Def" ~ "Off",
+           event_zone == "Neu" ~ "Neu"
+         ))
+
+fac_deploy_winner = fac_deploy_summary %>%
+  select(event_player_1, player_1_zone) %>%
+  mutate(outcome = "win") %>%
+  rename(event_player = event_player_1,
+         effective_event_zone = player_1_zone)
+
+fac_deploy_loser = fac_deploy_summary %>%
+  select(event_player_2, player_2_zone) %>%
+  mutate(outcome = "loss") %>%
+  rename(event_player = event_player_2,
+         effective_event_zone = player_2_zone)
+
+fac_deploy = fac_deploy_winner # now we only want to measure faceoff wins b/c no incremental value gained on faceoff loss #fac_deploy = rbind(fac_deploy_winner, fac_deploy_loser)
+
+deployment_summary = fac_deploy %>%
+  group_by(event_player, effective_event_zone) %>%
+  summarize(count = n(), .groups = 'keep') %>%
+  pivot_wider(names_from = c(effective_event_zone),
+              values_from = c(count)) %>%
+  select(-`NA`) %>%
+  mutate(across(where(is.numeric), ~replace_na(., 0)))
+deployment_summary %>% write_csv("faceoff_usage_by_situation_2021.csv")  
+
+off_rating_contextualized_more = off_rating_contextualized %>%
+  inner_join(deployment_summary, by = c('event_player_1' = 'event_player'))
+
+off_rating_contextualized_more = off_rating_contextualized_more %>%
+  mutate(seasonal_NXG = (Off + Def) * 0.0044171540 * median_IZT)
+
+off_rating_contextualized_more %>% 
+  write_csv("seasonal_offensive_rating_NXG.csv")
+
+sorted_ratings = off_rating_contextualized_more %>%
+  filter(count >= 5) %>%
+  arrange(desc(median_IXG))
+
+top_ratings = sorted_ratings %>%
+  head(36)
+
+focus_list = as.vector(top_ratings$event_player_1)
+
+top_seasonal_nxg_impact = off_rating_contextualized_more %>%
+  filter(event_player_1 %in% focus_list) %>%
+  arrange(desc(seasonal_NXG))
+
+top_seasonal_nxg_impact_formatted_for_excel = top_seasonal_nxg_impact %>%
+  arrange(desc(median_IZT)) %>%
+  select(event_player_1, seasonal_NXG)
+
+top_seasonal_nxg_impact_formatted_for_excel %>% write_csv("top_seasonal_nxg_impact_formatted_for_excel.csv")

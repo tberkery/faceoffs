@@ -99,5 +99,62 @@ off_rating_rel_expected = off_rating_rel_expected %>%
 
 # ADJUST EXPECTED BY OPPONENT
 
-off_rating_contextualized = winner_grouped %>%
-  inner_join(loser_grouped_sub, by = c('event_player_2' = 'event_player_2'))
+mean_count = round(mean(winner_grouped$count) + mean(loser_grouped$count))
+median_ZT_val = median(preds$.pred)
+
+loser_grouped_sub = loser_grouped %>%
+  select(event_player_2, season, event_type, median_ZT, count) %>%
+  mutate(median_ZT = case_when(
+    count < mean_count ~ (count * median_ZT + (mean_count - count) * median_ZT_val) / mean_count,
+    TRUE ~ median_ZT
+  ))
+
+winner_grouped_sub = winner_grouped %>%
+  select(event_player_1, season, event_type, median_ZT, count) %>%
+  mutate(median_ZT = case_when(
+    count < mean_count ~ (count * median_ZT + (mean_count - count) * median_ZT_val) / mean_count,
+    TRUE ~ median_ZT
+  ))
+
+winner_grouped_contextualized = preds %>%
+  select(event_player_1, event_player_2, season, event_type, .pred) %>%
+  inner_join(loser_grouped_sub, by = c('event_player_2', 'season', 'event_type'), suffix = c("", "_opp")) %>%
+  mutate(.pred = .pred - median_ZT) %>%
+  group_by(event_player_1, season, event_type) %>%
+  summarize(sum_ZT = sum(.pred, na.rm = TRUE),
+            mean_ZT = mean(.pred, na.rm = TRUE),
+            median_ZT = median(.pred, na.rm = TRUE),
+            sd_ZT = sd(.pred, na.rm = TRUE),
+            count = n(),
+            .groups = 'keep') %>%
+  mutate(faceoff_type = "off_win")
+
+loser_grouped_contextualized = preds %>%
+  select(event_player_1, event_player_2, season, event_type, .pred) %>%
+  inner_join(winner_grouped_sub, by = c('event_player_1', 'season', 'event_type'), suffix = c("", "_opp")) %>%
+  mutate(.pred = median_ZT - .pred) %>% # note the order flip here
+  group_by(event_player_2, season, event_type) %>%
+  summarize(sum_ZT = sum(.pred, na.rm = TRUE),
+            mean_ZT = mean(.pred, na.rm = TRUE),
+            median_ZT = median(.pred, na.rm = TRUE),
+            sd_ZT = sd(.pred, na.rm = TRUE),
+            count = n(),
+            .groups = 'keep') %>%
+  mutate(faceoff_type = "off_win")
+
+off_rating_contextualized = rbind(winner_grouped_contextualized, loser_grouped_contextualized %>%
+                     rename(event_player_1 = event_player_2)) %>%
+  group_by(event_player_1, season) %>%
+  summarize(sum_IZT = first(sum_ZT) - last(sum_ZT),
+            mean_IZT = (first(mean_ZT) * first(count) - last(mean_ZT) * last(count)) / (first(count) + last(count)),
+            median_IZT = (first(median_ZT) * first(count) - last(median_ZT) * last(count)) / (first(count) + last(count)),
+            count_off = first(count),
+            count_def = last(count),
+            count = first(count) + last(count),
+            .groups = 'keep') %>%
+  select(-sum_IZT, -mean_IZT) %>%
+  mutate(median_IZT = case_when(
+    count < mean_count ~ (count ^ 2 * median_IZT + (mean_count - count) ^ 2 * 0) / (count ^ 2 + (mean_count - count)^2),
+    TRUE ~ median_IZT
+  ))
+
